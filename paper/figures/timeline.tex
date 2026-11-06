@@ -1,0 +1,26 @@
+% Fig. 5: per-second 95th percentile RTT in one scripted run, best effort vs orchestrated
+% (data/timeline_best_effort.csv, data/timeline_orchestrated.csv; eMBB flood from 30 s to 70 s)
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=1 by 2, vertical sep=9mm, xticklabels at=edge bottom},
+  width=0.96\columnwidth, height=33mm, ymode=log, ymin=0.5, ymax=3000, xmin=0, xmax=100,
+  ytick={1,10,100,1000}, yticklabels={1,10,$10^2$,$10^3$},
+  ylabel={RTT (ms)}, ylabel style={font=\footnotesize}, tick label style={font=\footnotesize},
+  title style={font=\footnotesize, yshift=-1.5mm}, ymajorgrids, grid style={gray!25},
+  unbounded coords=jump, every axis plot/.append style={line width=0.8pt}]
+\nextgroupplot[title={(a) Best effort}, legend to name=tllegend, legend columns=4,
+  legend style={font=\scriptsize, draw=none, column sep=1mm}]
+  \fill[green!12] (axis cs:30,0.5) rectangle (axis cs:70,3000);
+  \addplot[cUR, mark=none] table[col sep=comma, x=t, y=urllc_veh1] {data/timeline_best_effort.csv};
+  \addplot[cUR!45, mark=none] table[col sep=comma, x=t, y=urllc_veh4] {data/timeline_best_effort.csv};
+  \addplot[cPL, mark=none] table[col sep=comma, x=t, y=platoon] {data/timeline_best_effort.csv};
+  \addplot[cMM, mark=none] table[col sep=comma, x=t, y=mmtc] {data/timeline_best_effort.csv};
+  \legend{URLLC veh1, URLLC veh4, Platoon, mMTC}
+\nextgroupplot[title={(b) Orchestrated}, xlabel={Time (s)}, xlabel style={font=\footnotesize}]
+  \fill[green!12] (axis cs:30,0.5) rectangle (axis cs:70,3000);
+  \addplot[cUR, mark=none] table[col sep=comma, x=t, y=urllc_veh1] {data/timeline_orchestrated.csv};
+  \addplot[cUR!45, mark=none] table[col sep=comma, x=t, y=urllc_veh4] {data/timeline_orchestrated.csv};
+  \addplot[cPL, mark=none] table[col sep=comma, x=t, y=platoon] {data/timeline_orchestrated.csv};
+  \addplot[cMM, mark=none] table[col sep=comma, x=t, y=mmtc] {data/timeline_orchestrated.csv};
+\end{groupplot}
+\node[anchor=south] at ($(group c1r1.north)+(0,3.5mm)$) {\pgfplotslegendfromname{tllegend}};
+\end{tikzpicture}

@@ -1,0 +1,6 @@
+setup,congestion,congestion_sd,heavy,heavy_sd
+best_effort,16.924,0.057,11.450,0.019
+meters_only,11.338,0.019,11.289,0.025
+meters_loop,11.310,0.019,8.941,0.016
+static,11.338,0.019,11.247,0.016
+orchestrated,11.331,0.016,8.934,0.019

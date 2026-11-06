@@ -1,0 +1,26 @@
+% Fig. 2: per-switch packet pipeline, backhaul queue discipline and the reallocation loop (drawn in TikZ)
+\begin{tikzpicture}[font=\scriptsize, >=Stealth,
+  st/.style={draw, rounded corners=2pt, fill=blue!6, align=center, minimum height=9mm, text width=13mm, inner sep=1pt},
+  q/.style={draw, fill=gray!10, align=center, minimum height=5mm, inner sep=1.5pt}]
+  % pipeline
+  \node[st] (t0) at (0,0) {Table 0\\match proto, port};
+  \node[st] (m)  at (1.8,0) {Meter $s$\\drop above $b_s$};
+  \node[st] (d)  at (3.6,0) {Set DSCP\\$d_s$};
+  \node[st] (t1) at (5.4,0) {Table 1\\MAC learning};
+  \draw[->] (-1.1,0) node[left] {in} -- (t0);
+  \draw[->] (t0) -- (m); \draw[->] (m) -- (d); \draw[->] (d) -- (t1);
+  % reallocation loop under the meter
+  \node[draw, dashed, rounded corners=2pt, align=center, text width=24mm, minimum height=9mm] (loop) at (1.0,-1.9) {capacity loop, every 2\,s\\(Algorithm~1)};
+  \draw[->, dashed] (2.15,-0.45) -- node[right] {counters} (2.15,-1.45);
+  \draw[->, dashed] (1.45,-1.45) -- node[left] {MeterMod} (1.45,-0.45);
+  % queue tree under the forwarding stage
+  \node[q, minimum width=32mm] (htb)  at (4.75,-1.45) {HTB shaper, 20\,Mb/s};
+  \node[q, minimum width=32mm] (prio) at (4.75,-2.2) {strict priority, 3 bands};
+  \node[q, text width=9mm] (b1) at (3.6,-3.05) {band 1\\DSCP 46, 40};
+  \node[q, text width=9mm] (b2) at (4.75,-3.05) {band 2\\DSCP 18};
+  \node[q, text width=9mm] (b3) at (5.9,-3.05) {band 3\\others};
+  \draw[->] (t1.south) -- node[right] {backhaul port} (t1.south |- htb.north);
+  \draw[->] (htb) -- (prio);
+  \draw[->] (prio.south -| b1) -- (b1); \draw[->] (prio.south -| b2) -- (b2); \draw[->] (prio.south -| b3) -- (b3);
+  \node at (4.75,-3.75) {each band: netem 5\,ms, then the link};
+\end{tikzpicture}

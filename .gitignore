@@ -4,3 +4,9 @@ __pycache__/
 *.pyc
 *.apconf
 docs/report_src/lo/
+docs/report_src/deck/tpl/
+docs/report_src/deck/un/
+docs/report_src/deck/*.pdf
+dashboard.zip
+paper/ncc_paper_overleaf.zip
+.build/

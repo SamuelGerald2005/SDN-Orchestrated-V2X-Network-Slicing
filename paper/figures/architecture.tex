@@ -1,0 +1,39 @@
+% Fig. 1: testbed topology and orchestrator modules (drawn in TikZ)
+\begin{tikzpicture}[font=\footnotesize, >=Stealth,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=6mm, inner sep=2pt},
+  sw/.style={box, fill=blue!8, minimum width=15mm},
+  srv/.style={box, fill=gray!12, minimum width=13mm},
+  mod/.style={draw, fill=white, rounded corners=1pt, align=center, font=\scriptsize, minimum height=7mm, text width=17mm, inner sep=1pt},
+  veh/.style={draw, circle, fill=orange!35, inner sep=1.2pt, font=\tiny},
+  bh/.style={very thick, red!60!black},
+  ctl/.style={densely dashed, gray}]
+  % controller
+  \node[draw, rounded corners=3pt, fill=blue!4, minimum width=172mm, minimum height=15mm] (ctrl) at (0,4.1) {};
+  \node[anchor=north west, font=\footnotesize\bfseries] at (ctrl.north west) {Control plane: RYU 4.34 + V2X orchestrator};
+  \node[mod] (m1) at (-6.6,3.95) {Slice registry\\(5 slices)};
+  \node[mod] (m2) at (-3.3,3.95) {Rule \& meter\\installer};
+  \node[mod] (m3) at (0,3.95) {Meter monitor \&\\capacity loop};
+  \node[mod] (m4) at (3.3,3.95) {Mobility\\manager};
+  \node[mod] (m5) at (6.6,3.95) {REST API\\(port 8081)};
+  % data plane
+  \node[sw] (s1) at (0,2.1) {s1\\[-1pt]\scriptsize aggregation};
+  \node[sw] (r1) at (-3.6,0.8) {rsu1\\[-1pt]\scriptsize OVS AP, ch.\,1};
+  \node[sw] (r2) at (3.6,0.8) {rsu2\\[-1pt]\scriptsize OVS AP, ch.\,6};
+  \node[srv] (cs) at (5.9,2.1) {infotain, telemetry\\[-1pt]\scriptsize central servers};
+  \node[srv] (e1) at (-7.2,0.8) {MEC 1};
+  \node[srv] (e2) at (7.2,0.8) {MEC 2};
+  \draw[bh] (s1) -- node[above left, font=\scriptsize, text=black, pos=0.45] {20\,Mb/s, 5\,ms} (r1);
+  \draw[bh] (s1) -- node[above right, font=\scriptsize, text=black, pos=0.45] {20\,Mb/s, 5\,ms} (r2);
+  \draw[thick] (s1) -- node[above, font=\scriptsize] {100\,Mb/s, 15\,ms} (cs);
+  \draw[thick] (r1) -- node[above, font=\scriptsize] {0.5\,ms} (e1);
+  \draw[thick] (r2) -- node[above, font=\scriptsize] {0.5\,ms} (e2);
+  \draw[ctl] (ctrl.south) -- node[right, font=\scriptsize, text=black] {OpenFlow 1.3} (s1);
+  \draw[ctl] (ctrl.south -| r1) -- (r1);
+  \draw[ctl] (ctrl.south -| r2) -- (r2);
+  % coverage and vehicles
+  \draw[blue!40, densely dotted] (r1) ellipse (2.9 and 0.95);
+  \draw[blue!40, densely dotted] (r2) ellipse (2.9 and 0.95);
+  \foreach \x/\n in {-5.0/1,-3.9/2,-2.6/3,2.6/4,3.9/5,5.0/6} {\node[veh] at (\x,0.0) {v\n};}
+  \draw[->, orange!70!black, thick] (-1.6,-0.05) -- node[below, font=\scriptsize, text=black] {mobility (scripted or random waypoint)} (1.6,-0.05);
+  \node[font=\scriptsize, text=red!60!black, align=center] at (0,0.95) {priority\\queues};
+\end{tikzpicture}

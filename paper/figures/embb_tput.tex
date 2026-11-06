@@ -1,0 +1,16 @@
+% Fig. 4: eMBB throughput per setup during the flood (data/embb_tput.csv)
+\begin{tikzpicture}
+\begin{axis}[width=\columnwidth, height=40mm, ybar=1pt, /pgf/bar width=7pt,
+  ymin=0, ymax=18, ytick={0,4,8,12,16}, ylabel={eMBB throughput (Mb/s)}, ylabel style={font=\footnotesize},
+  symbolic x coords={best_effort,meters_only,meters_loop,static,orchestrated}, xtick=data,
+  xticklabels={Best effort, Meters only, Meters\\+ loop, Meters\\+ priority, Orchestr.}, xticklabel style={align=center},
+  tick label style={font=\footnotesize}, enlarge x limits=0.13, ymajorgrids, grid style={gray!25},
+  legend style={font=\footnotesize, draw=none, at={(0.5,1.03)}, anchor=south, legend columns=2, column sep=3mm},
+  legend image code/.code={\draw[#1] (0cm,-0.1cm) rectangle (0.25cm,0.1cm);},
+  every axis plot/.append style={draw=black!70, line width=0.2pt}]
+  \addplot[fill=gray!35] table[col sep=comma, x=setup, y=congestion] {data/embb_tput.csv};
+  \addplot[fill=cOR!70] table[col sep=comma, x=setup, y=heavy] {data/embb_tput.csv};
+  \legend{Congestion, Heavy critical load}
+  \addplot[red!60!black, dashed, sharp plot, update limits=false, forget plot] coordinates {(best_effort,12) (orchestrated,12)};
+\end{axis}
+\end{tikzpicture}

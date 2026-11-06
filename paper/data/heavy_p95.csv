@@ -1,0 +1,5 @@
+flow,best_effort,best_effort_sd,meters_only,meters_only_sd,meters_loop,meters_loop_sd,static,static_sd,orchestrated,orchestrated_sd
+urllc_edge,1.821,0.0252,1.825,0.02961,1.829,0.03612,1.791,0.04051,1.82,0.04315
+urllc_far,701.9,14.6,202.8,8.065,23.71,0.03193,22.24,0.01749,22.06,0.01682
+platoon,702.1,14.82,203,8.102,24.37,0.04645,23.28,0.03936,23.19,0.03522
+mmtc,719.5,14.71,222.7,7.674,43.9,0.07913,43.07,0.1541,42.76,0.08325

@@ -1,0 +1,21 @@
+% Fig. 6: packet loss under mobility (data/handover_loss.csv, data/random_loss.csv)
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1, horizontal sep=6mm, yticklabels at=edge left},
+  width=0.56\columnwidth, height=40mm, ybar=0pt, /pgf/bar width=4.5pt, ymin=0, ymax=100,
+  symbolic x coords={urllc_edge,urllc_far,platoon,mmtc}, xtick=data,
+  tick label style={font=\scriptsize}, title style={font=\footnotesize, yshift=-1.5mm},
+  ymajorgrids, grid style={gray!25}, error bars/error bar style={black, thin},
+  every axis plot/.append style={draw=black!70, line width=0.2pt}]
+\nextgroupplot[title={(a) Scripted handover}, ylabel={Packet loss (\%)}, ylabel style={font=\footnotesize}, xticklabels={URLLC\\edge, URLLC\\far, Platoon}, xticklabel style={align=center},
+  enlarge x limits=0.25,
+  legend to name=moblegend, legend columns=3, legend style={font=\footnotesize, draw=none, column sep=2mm},
+  legend image code/.code={\draw[#1] (0cm,-0.1cm) rectangle (0.25cm,0.1cm);}]
+  \foreach \s/\c in {best_effort/cBE, static/cST, orchestrated/cOR} {
+    \edef\tmp{\noexpand\addplot[fill=\c, error bars/.cd, y dir=both, y explicit] table[col sep=comma, x=flow, y=\s, y error=\s_sd] {data/handover_loss.csv};}\tmp }
+  \legend{Best effort, Meters + priority, Orchestrated}
+\nextgroupplot[title={(b) Random waypoint + flood}, xticklabels={URLLC\\edge, URLLC\\far, Platoon, mMTC}, xticklabel style={align=center}, enlarge x limits=0.18]
+  \foreach \s/\c in {best_effort/cBE, static/cST, orchestrated/cOR} {
+    \edef\tmp{\noexpand\addplot[fill=\c, error bars/.cd, y dir=both, y explicit] table[col sep=comma, x=flow, y=\s, y error=\s_sd] {data/random_loss.csv};}\tmp }
+\end{groupplot}
+\node[anchor=south] at ($(group c1r1.north east)!0.5!(group c2r1.north west)+(0,4mm)$) {\pgfplotslegendfromname{moblegend}};
+\end{tikzpicture}

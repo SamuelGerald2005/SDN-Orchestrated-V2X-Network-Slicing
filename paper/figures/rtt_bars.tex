@@ -1,0 +1,24 @@
+% Fig. 3: 95th percentile RTT per flow and setup during the eMBB flood (data/congestion_p95.csv, data/heavy_p95.csv)
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1, horizontal sep=14mm},
+  width=0.5\textwidth, height=48mm, ybar=0pt, /pgf/bar width=4.2pt,
+  ymode=log, log origin=infty, ymin=0.8, ymax=12000,
+  ytick={1,10,100,1000,10000}, yticklabels={1,10,$10^2$,$10^3$,$10^4$},
+  ylabel={RTT, 95th pct.\ (ms)}, ylabel style={font=\footnotesize},
+  symbolic x coords={urllc_edge,urllc_far,platoon,mmtc}, xtick=data,
+  xticklabels={URLLC edge, URLLC far, Platoon, mMTC}, enlarge x limits=0.18,
+  tick label style={font=\footnotesize}, title style={font=\footnotesize},
+  ymajorgrids, grid style={gray!25}, error bars/error bar style={black, thin},
+  every axis plot/.append style={draw=black!70, line width=0.2pt}]
+\nextgroupplot[title={(a) Congestion},
+  legend to name=setuplegend, legend columns=5, legend style={font=\footnotesize, draw=none, column sep=3mm},
+  legend image code/.code={\draw[#1] (0cm,-0.1cm) rectangle (0.25cm,0.1cm);}]
+  \foreach \s/\c in {best_effort/cBE, meters_only/cMO, meters_loop/cML, static/cST, orchestrated/cOR} {
+    \edef\tmp{\noexpand\addplot[fill=\c, error bars/.cd, y dir=both, y explicit] table[col sep=comma, x=flow, y=\s, y error=\s_sd] {data/congestion_p95.csv};}\tmp }
+  \legend{Best effort, Meters only, Meters + loop, Meters + priority, Orchestrated (all)}
+\nextgroupplot[title={(b) Heavy critical load}]
+  \foreach \s/\c in {best_effort/cBE, meters_only/cMO, meters_loop/cML, static/cST, orchestrated/cOR} {
+    \edef\tmp{\noexpand\addplot[fill=\c, error bars/.cd, y dir=both, y explicit] table[col sep=comma, x=flow, y=\s, y error=\s_sd] {data/heavy_p95.csv};}\tmp }
+\end{groupplot}
+\node[anchor=south] at ($(group c1r1.north east)!0.5!(group c2r1.north west) + (0,6mm)$) {\pgfplotslegendfromname{setuplegend}};
+\end{tikzpicture}
