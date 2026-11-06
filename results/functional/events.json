@@ -1,0 +1,77 @@
+[
+  {
+    "t": 1793926900.4,
+    "event": "START",
+    "detail": "slicing ENABLED, priority queues ENABLED, threshold loop ENABLED (capacity policy)"
+  },
+  {
+    "t": 1793926917.8,
+    "event": "SWITCH",
+    "detail": "dpid 1152921504606846977 connected"
+  },
+  {
+    "t": 1793926917.8,
+    "event": "SWITCH",
+    "detail": "dpid 1152921504606846978 connected"
+  },
+  {
+    "t": 1793926917.9,
+    "event": "SWITCH",
+    "detail": "dpid 1 connected"
+  },
+  {
+    "t": 1793926930.2,
+    "event": "HANDOVER",
+    "detail": "00:00:00:00:00:04 dpid 1152921504606846977 port 3 -> 1, flows flushed"
+  },
+  {
+    "t": 1793926932.1,
+    "event": "HANDOVER",
+    "detail": "00:00:00:00:00:01 dpid 1152921504606846978 port 3 -> 1, flows flushed"
+  },
+  {
+    "t": 1793926932.1,
+    "event": "HANDOVER",
+    "detail": "00:00:00:00:00:03 dpid 1152921504606846977 port 3 -> 1, flows flushed"
+  },
+  {
+    "t": 1793926934.8,
+    "event": "HANDOVER",
+    "detail": "00:00:00:00:00:02 dpid 1152921504606846978 port 3 -> 1, flows flushed"
+  },
+  {
+    "t": 1793926952.5,
+    "event": "PROTECT_ON",
+    "detail": "dpid 1152921504606846977 critical load 7274 kb/s, eMBB -> 11000 kb/s"
+  },
+  {
+    "t": 1793926954.5,
+    "event": "ADJUST",
+    "detail": "dpid 1152921504606846977 critical load 10290 kb/s, eMBB -> 8000 kb/s"
+  },
+  {
+    "t": 1793926956.5,
+    "event": "ADJUST",
+    "detail": "dpid 1152921504606846977 critical load 8154 kb/s, eMBB -> 10000 kb/s"
+  },
+  {
+    "t": 1793926958.5,
+    "event": "PROTECT_OFF",
+    "detail": "dpid 1152921504606846977 critical load 0 kb/s, eMBB -> 12000 kb/s"
+  },
+  {
+    "t": 1793926975.0,
+    "event": "RESIZE",
+    "detail": "urllc budget -> 3000 kb/s"
+  },
+  {
+    "t": 1793926978.5,
+    "event": "PROTECT_ON",
+    "detail": "dpid 1152921504606846977 critical load 10290 kb/s, eMBB -> 8000 kb/s"
+  },
+  {
+    "t": 1793926981.1,
+    "event": "RESIZE",
+    "detail": "urllc budget -> 5000 kb/s"
+  }
+]

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>V2X Slicing Project: Changes and Next Steps</title>
+<style>
+@page { size: A4; margin: 20mm 18mm 18mm 18mm; }
+body { font-family: "Liberation Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.32; color: #1f2933; }
+h1 { font-size: 21pt; color: #12344d; margin: 0 0 3pt 0; }
+h2 { font-size: 14pt; color: #12344d; margin: 15pt 0 5pt 0; }
+h3 { font-size: 11pt; color: #1f5f8b; margin: 10pt 0 3pt 0; }
+p { margin: 0 0 6pt 0; }
+li { margin: 0 0 3pt 0; }
+th { font-size: 9pt; color: #12344d; text-align: left; }
+td { font-size: 9pt; vertical-align: top; }
+code { font-family: "Liberation Mono", monospace; font-size: 8.5pt; }
+pre { font-family: "Liberation Mono", monospace; font-size: 8.5pt; background: #eef2f6; margin: 2pt 0 7pt 0; }
+.sub { color: #52606d; font-size: 10pt; }
+.note { color: #52606d; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<div type="FOOTER"><p align="center" class="note">V2X Slicing Project: Changes and Next Steps &nbsp;|&nbsp; Page <sdfield type="PAGE" subtype="RANDOM" format="PAGE">1</sdfield></p></div>
+
+<h1>V2X Slicing Project: Changes and Next Steps</h1>
+<p class="sub">SDN-Orchestrated Network Slicing for Vehicular 5G (V2X)<br>Work of 5 November 2026, continuing from Section 9 of that day's handoff notes.</p>
+
+<h2>1. Where things stand</h2>
+<p><b>Step 12 (orchestrator verification) passed, and Step 2 (experiments) is at the pilot stage.</b> The first pilot suggests that slicing protects critical traffic under congestion. Critical round-trip time stayed close to its idle level, compared with over a second under best effort. The threshold loop added little in that pilot, and that needs a closer look because it is the project's claimed research gap.</p>
+
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="34%">Item</th><th width="16%">Status</th><th width="50%">Detail</th></tr>
+<tr><td>Orchestrator runs and switches connect</td><td bgcolor="#dff3e4"><b>Done</b></td><td>All 3 switches connect, with no OpenFlow errors or crashes in any logged run after the fix</td></tr>
+<tr><td>Full connectivity</td><td bgcolor="#dff3e4"><b>Done, recheck</b></td><td>90/90 in all three pingalls, but the topology has changed since (RSU range)</td></tr>
+<tr><td>Same-RSU traffic passes through meters</td><td bgcolor="#dff3e4"><b>Done</b></td><td>Platoon counters rose from 0 to 229 packets on <code>rsu1</code></td></tr>
+<tr><td>Platoon meter limits traffic</td><td bgcolor="#dff3e4"><b>Done</b></td><td>8 Mb/s flood limited to about 3.9 Mb/s, same-RSU and cross-RSU</td></tr>
+<tr><td>Threshold loop switches on and off</td><td bgcolor="#dff3e4"><b>Done</b></td><td>5 <code>PROTECT_ON</code> and 5 <code>PROTECT_OFF</code> events in the last Step 12 run</td></tr>
+<tr><td>Coverage-hole fix (<code>RSU_RANGE = 30</code>)</td><td bgcolor="#fbeed0"><b>Not tested</b></td><td>Written, not yet run. Second pilot is ready</td></tr>
+<tr><td>Stronger <code>heavy</code> scenario</td><td bgcolor="#fbeed0"><b>Not tested</b></td><td>Written, not yet run. Second pilot is ready</td></tr>
+<tr><td>Full experiment repeats</td><td bgcolor="#f8dcdc"><b>Not started</b></td><td>Waiting on the second pilot and one policy decision (Section 8)</td></tr>
+<tr><td>Plots and write-up</td><td bgcolor="#f8dcdc"><b>Not started</b></td><td>Depends on the full repeats</td></tr>
+</table>
+
+<h2>2. Problems found and fixed</h2>
+<p>Five problems came up. The first three are fixed and tested. The last two are fixed in the code but not yet tested.</p>
+
+<h3>2.1 RYU's event loop crashed at startup</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr><td width="18%" bgcolor="#f2f5f8"><b>Symptom</b></td><td>The 22:07 session ran for 36 minutes with no switches registered (<code>"switches": {}</code>), a single <code>START</code> event, and 526 dead connections on port 6653.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Cause</b></td><td>The orchestrator stored its event history in <code>self.events</code>, which overwrote the event queue of the same name in RYU's base class. Log: <code>'collections.deque' object has no attribute 'get'</code>.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Fix</b></td><td>Renamed the attribute to <code>self.event_log</code>. The <code>/v2x/events</code> URL is unchanged.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Status</b></td><td bgcolor="#dff3e4"><b>Tested.</b> All 3 switches connect, and the crash no longer appears.</td></tr>
+</table>
+
+<h3>2.2 Vehicle-to-vehicle pings failed across RSUs after moving</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr><td width="18%" bgcolor="#f2f5f8"><b>Symptom</b></td><td><code>pingall</code> reached only 74, 74 and 81 of 90. Every failure was vehicle-to-vehicle between RSUs, and all vehicle-to-server pings worked.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Cause</b></td><td>The old RSU keeps a departed vehicle in its station list for minutes (one entry was still there about 7.5 minutes in). The best explanation is that its kernel delivers frames for that vehicle locally over Wi-Fi, so they never reach OVS. This was inferred from station lists, not from frame captures.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Evidence</b></td><td>Station dumps matched the failures exactly. At the end of the diagnostic run, the only stale entry left was veh2 on <code>rsu1</code>, and the only failures left were veh2 with veh3, veh4 and veh5.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Fix</b></td><td>Added the hostapd settings used in the Saraiva et al. code (<code>ap_max_inactivity=6</code>, <code>skip_inactivity_poll=1</code>, <code>max_listen_interval=6</code>) plus 1-second vehicle beacons. The beacons also let RYU see vehicles during movement.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Status</b></td><td bgcolor="#dff3e4"><b>Tested.</b> <code>pingall</code> reached 89, 90 and 90 of 90, and 4 <code>HANDOVER</code> events appeared where there had been none.</td></tr>
+</table>
+
+<h3>2.3 Same-RSU traffic bypassed its slice meter</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr><td width="18%" bgcolor="#f2f5f8"><b>Symptom</b></td><td>A 1 Mb/s platoon flow between two vehicles on one RSU delivered 260 of 260 packets, yet the platoon rule counters stayed at 0 on every switch.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Cause</b></td><td>The RSU's kernel delivered the frames itself, so they never reached OVS. The meter could not see or limit them.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Fix</b></td><td>Set <code>client_isolation=True</code> in the topology. The controller now finds each RSU's Wi-Fi port and sends same-RSU traffic back out through it using <code>OFPP_IN_PORT</code>, including broadcasts such as ARP. The <code>STALE</code> check now applies to wired ports only.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Status</b></td><td bgcolor="#dff3e4"><b>Tested.</b> 229 packets counted on <code>rsu1</code> and 0 elsewhere, as expected. An 8 Mb/s flood was limited to 3.96 Mb/s same-RSU and 3.92 Mb/s cross-RSU. <code>pingall</code> reached 90/90 in all three runs.</td></tr>
+</table>
+
+<h3>2.4 Traffic gaps of 6 to 14 seconds during handover</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr><td width="18%" bgcolor="#f2f5f8"><b>Symptom</b></td><td>In the first pilot, flows stopped for 6 to 14 seconds while vehicles moved, with loss of 24% to 75%. The longest gaps were nearly identical in the static and orchestrated runs and similar under best effort.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Likely cause</b></td><td>Mininet-WiFi disconnects a vehicle once it is out of range. The gaps suggest a coverage hole between the two RSUs, which are 40 m apart, so this would not be a slicing effect. The actual range has not been measured.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Fix</b></td><td>Added <code>RSU_RANGE = 30</code>, which should give 20 m of overlap.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Status</b></td><td bgcolor="#fbeed0"><b>Not tested.</b> Setting <code>range</code> may not change the simulated signal strength. If it does not, vehicles at the edge could lose packets or fail to associate.</td></tr>
+</table>
+
+<h3>2.5 The <code>heavy</code> scenario was too light to test the loop</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr><td width="18%" bgcolor="#f2f5f8"><b>Symptom</b></td><td>The backhaul never overflowed (about 18.5 Mb/s of 20 Mb/s under static slicing). <code>PROTECT_OFF</code> also had no time to fire before the trial ended.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Fix</b></td><td>Raised critical traffic to about 8.5 Mb/s on the wire (URLLC-far 570 packets/s, platoon 450 packets/s, 1000 bytes each). With eMBB at up to 12 Mb/s, the total can exceed 20 Mb/s. Added 5 seconds at the end of each parked trial.</td></tr>
+<tr><td bgcolor="#f2f5f8"><b>Status</b></td><td bgcolor="#fbeed0"><b>Not tested.</b> This load was chosen so the loop has a case where it could matter. The write-up should say so and report the result even if it shows no benefit.</td></tr>
+</table>
+
+<h2>3. Files changed or added</h2>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="30%">File</th><th width="56%">What changed</th><th width="14%">Tested</th></tr>
+<tr><td><code>controller/ v2x_orchestrator.py</code></td><td>Renamed <code>self.events</code> to <code>self.event_log</code>. Added Wi-Fi port detection and same-port forwarding. Limited <code>STALE</code> to wired ports. Added the <code>V2X_DYNAMIC=0</code> switch, which turns the threshold loop off.</td><td bgcolor="#dff3e4">Yes</td></tr>
+<tr><td rowspan="2"><code>v2x_topology_v2.py</code></td><td>Added Saraiva hostapd settings, 1-second beacons to 10.0.0.30, <code>client_isolation=True</code>, and the <code>V2X_PLOT=0</code> option that skips the live plot.</td><td bgcolor="#dff3e4">Yes</td></tr>
+<tr><td>Added <code>RSU_RANGE = 30</code>.</td><td bgcolor="#fbeed0">No</td></tr>
+<tr><td><code>experiments/ udp_probe.py</code> (new)</td><td>Per-slice UDP probe measuring RTT, jitter, loss and delivery gaps. It is needed because <code>ping</code> only travels on the best-effort slice.</td><td bgcolor="#dff3e4">Yes</td></tr>
+<tr><td><code>experiments/ analyze.py</code> (new)</td><td>Turns the logs into <code>trials.csv</code> and <code>summary.md</code>, with mean and standard deviation across repeats. Only one repeat exists so far, so the deviation calculation has not been exercised.</td><td bgcolor="#dff3e4">Yes</td></tr>
+<tr><td><code>scripts/ run_step2_host.sh</code>, <code>run_step2_inner.sh</code> (new)</td><td>Run each scenario under each setup, with setups interleaved in each repeat. The heavier load, longer ending and scenario selection have not been run.</td><td bgcolor="#fbeed0">Partly</td></tr>
+<tr><td><code>scripts/ verify_step12_host.sh</code>, <code>verify_step12_inner.sh</code> (new)</td><td>Run the Step 12 checks with one sudo password: <code>pingall</code>, station dumps, platoon counters, meter limits, and meter, flow and REST output.</td><td bgcolor="#dff3e4">Yes</td></tr>
+</table>
+<p class="note"><br>The project folder is not a git repository, so none of these changes are versioned.</p>
+
+<h2>4. Step 12 results, run by run</h2>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="31%">Run</th><th width="23%">pingall (of 90)</th><th width="16%"><code>HANDOVER</code></th><th width="30%">Same-RSU platoon counter</th></tr>
+<tr><td>Before the event-queue fix</td><td>Not measured</td><td>0</td><td>No switches connected</td></tr>
+<tr><td><b>Run 1:</b> event-queue fix</td><td>74, 74, 81</td><td>0</td><td>Not measured</td></tr>
+<tr><td><b>Run 2:</b> added station dumps</td><td>74, 74, 81, 84</td><td>0</td><td>Not measured</td></tr>
+<tr><td><b>Run 3:</b> Saraiva settings and beacons</td><td>89, 90, 90</td><td>4</td><td>0 (bypass confirmed)</td></tr>
+<tr bgcolor="#dff3e4"><td><b>Run 4:</b> client isolation and same-port forwarding</td><td><b>90, 90, 90</b></td><td><b>4</b></td><td><b>229 (bypass fixed)</b></td></tr>
+</table>
+<p class="note"><br>The first <code>pingall</code> figure in each run is the warm-up. Logs are in <code>logs/step12_run1</code> to <code>logs/step12_run4</code>.</p>
+<p>Other Step 12 checks: 5 meters and 8 slice rules plus the default rule were confirmed in the switch dumps from run 1, and the code that installs them has not changed. The REST <code>GET</code> routes respond. The REST <code>PUT</code> route that resizes a slice has not been tested.</p>
+
+<h2>5. How the literature survey was used</h2>
+<p>The survey PDF itself does not cover the technical bugs. The most useful source was the code repository it links for Saraiva et al. (<code>github.com/saraivacode/framework_its_sdn</code>), which supplied the hostapd settings.</p>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="31%">Source</th><th width="69%">What it shaped</th></tr>
+<tr><td>Saraiva et al., IEEE T-ITS 2021 (paper 7)</td><td>RSU hostapd settings and the idea of beacon traffic. The three-way comparison: best effort, QoS only and framework. The metrics PDR, throughput and RTT.</td></tr>
+<tr><td>Shah et al., IEEE TCE 2025 (paper 2)</td><td>Measuring safety traffic during handover, not only while vehicles are parked.</td></tr>
+<tr><td>Ahmad, Gul &amp; Derawi, Sensors 2026 (paper 1)</td><td>Supports four slices and the focus on infotainment congesting critical traffic.</td></tr>
+<tr><td>Survey's combined research gap</td><td>The threshold loop, benchmarked on latency, jitter, throughput and loss. This is why the static setup exists: only that comparison shows what the loop adds.</td></tr>
+</table>
+<p class="note"><br>Limits: the Saraiva settings came from reading its code, not the paper's full text, so check the paper before citing them as its method. The beacon script itself (<code>carcont2.sh</code>) was not read, so the 1-second ping beacon is this project's own version. The survey says papers 3, 4 and 5 were not read in full, so they were not relied on here.</p>
+
+<h2>6. Step 2 experiment design</h2>
+<h3>Three setups</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="20%">Setup</th><th width="34%">Controller settings</th><th width="46%">Meaning</th></tr>
+<tr><td><code>best_effort</code></td><td><code>V2X_SLICING=0</code></td><td>Same forwarding, no meters</td></tr>
+<tr><td><code>static</code></td><td><code>V2X_SLICING=1 V2X_DYNAMIC=0</code></td><td>Meters at fixed budgets, threshold loop off</td></tr>
+<tr><td><code>orchestrated</code></td><td><code>V2X_SLICING=1 V2X_DYNAMIC=1</code></td><td>Meters plus threshold loop</td></tr>
+</table>
+
+<h3>Traffic in each scenario</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="16%">Flow</th><th width="28%">Path</th><th width="19%">Port</th><th width="19%"><code>congestion</code></th><th width="18%"><code>heavy</code></th></tr>
+<tr><td>URLLC edge</td><td>veh4 to <code>mec_rsu1</code> (same RSU)</td><td>UDP 5000</td><td>200 B, 100/s</td><td>200 B, 100/s</td></tr>
+<tr><td>URLLC far</td><td>veh1 to <code>mec_rsu1</code> (across backhaul)</td><td>UDP 5000</td><td>200 B, 100/s</td><td>1000 B, 570/s</td></tr>
+<tr><td>Platoon</td><td>veh2 to veh3 (across backhaul)</td><td>UDP 9000</td><td>1000 B, 100/s</td><td>1000 B, 450/s</td></tr>
+<tr><td>mMTC</td><td>veh4 to telemetry</td><td>UDP 1883</td><td>200 B, 10/s</td><td>200 B, 10/s</td></tr>
+<tr><td>eMBB flood</td><td>infotain to veh5, 4 TCP streams</td><td>TCP 8080</td><td>30 s</td><td>30 s</td></tr>
+</table>
+<p class="note"><br>Parked timeline: 25 s settling, then 15 s idle, 30 s flood and 15 s recovery. Results skip the first 5 s of the flood.<br>The <code>handover</code> scenario runs while vehicles move, for 30 s: URLLC far (veh1 to <code>mec_rsu1</code>), URLLC edge (veh3 to <code>mec_rsu1</code>), platoon (veh2 to veh4, 1000 B at 100/s) and the eMBB flood. In that scenario the "edge" and "far" labels describe where each vehicle ends up.</p>
+
+<h3>Metrics</h3>
+<p>For each flow: RTT (mean, 95th and 99th percentile), jitter, loss (PDR is 100% minus loss), throughput and the longest delivery gap. The controller log adds <code>PROTECT_ON</code>, <code>PROTECT_OFF</code> and <code>HANDOVER</code> events. Replies carry only a 12-byte header, because both directions share one meter and full-size replies would use up the budget twice.</p>
+
+<h2>7. First pilot results</h2>
+<p><b>These come from one run per setup, so they are indicative only.</b> Use them to judge the test design, not as findings. All 9 trials completed, with no controller errors logged.</p>
+<h3>Parked vehicles, <code>congestion</code>, during the flood</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="37%">Measure</th><th width="21%"><code>best_effort</code></th><th width="21%"><code>static</code></th><th width="21%"><code>orchestrated</code></th></tr>
+<tr><td>URLLC edge, mean RTT</td><td>688 ms</td><td>2.1 ms</td><td>1.5 ms</td></tr>
+<tr><td>URLLC far, mean RTT</td><td>664 ms</td><td>11.2 ms</td><td>11.0 ms</td></tr>
+<tr><td>URLLC far, loss</td><td>7.9%</td><td>0%</td><td>0%</td></tr>
+<tr><td>Platoon, mean RTT</td><td>1391 ms</td><td>12.1 ms</td><td>11.5 ms</td></tr>
+<tr><td>Platoon, 99th percentile RTT</td><td>2642 ms</td><td>16.0 ms</td><td>15.0 ms</td></tr>
+<tr><td>Platoon, jitter</td><td>3.94 ms</td><td>1.46 ms</td><td>0.97 ms</td></tr>
+<tr><td>Platoon, loss</td><td>5.7%</td><td>0%</td><td>0%</td></tr>
+<tr><td>mMTC, mean RTT</td><td>1367 ms</td><td>37.2 ms</td><td>36.3 ms</td></tr>
+<tr><td>eMBB throughput</td><td>17.3 Mb/s</td><td>11.3 Mb/s</td><td>5.6 Mb/s</td></tr>
+</table>
+<p class="note"><br>Idle reference, across all setups: URLLC edge 0.9 ms, URLLC far and platoon 11 ms, mMTC 35.5 ms.</p>
+
+<h3>Parked vehicles, old <code>heavy</code> load, during the flood</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="37%">Measure</th><th width="21%"><code>best_effort</code></th><th width="21%"><code>static</code></th><th width="21%"><code>orchestrated</code></th></tr>
+<tr><td>Platoon, mean RTT</td><td>561 ms</td><td>13.7 ms</td><td>11.5 ms</td></tr>
+<tr><td>Platoon, 99th percentile RTT</td><td>813 ms</td><td>24.4 ms</td><td>14.8 ms</td></tr>
+<tr><td>Platoon, loss</td><td>1.7%</td><td>0%</td><td>0%</td></tr>
+<tr><td>eMBB throughput</td><td>12.1 Mb/s</td><td>11.3 Mb/s</td><td>5.6 Mb/s</td></tr>
+</table>
+
+<h3>What the pilot suggests</h3>
+<ul>
+<li><b>Slicing protects critical traffic.</b> Under both slicing setups, critical RTT stayed close to idle, and critical loss was 0%.</li>
+<li><b>Most of the benefit comes from the static meters.</b> In <code>congestion</code>, the loop improved mean RTT by under 1 ms and halved eMBB throughput. In the old <code>heavy</code> load, it improved mean platoon RTT by about 2 ms and 99th percentile by about 10 ms, again at half the eMBB throughput.</li>
+<li><b>The eMBB limit works.</b> eMBB throughput stayed under its limit in the parked runs: 11.3 of 12 Mb/s under static, and 5.6 of 6 Mb/s under orchestrated.</li>
+<li><b>Wi-Fi is sometimes a bottleneck too.</b> URLLC edge does not cross the backhaul, yet it reached 688 ms with 17.3 Mb/s of eMBB. The best explanation is that the RSU's Wi-Fi queue also saturates. In the <code>heavy</code> best-effort run at 12.1 Mb/s it stayed at 1.7 ms. So best-effort delay is not purely a backhaul effect.</li>
+<li><b>Do not use the first pilot's <code>handover</code> results.</b> They reflect the suspected coverage hole.</li>
+</ul>
+
+<h2>8. What needs to be done next</h2>
+
+<h3>Step 1: Run the second pilot (about 8 minutes)</h3>
+<pre>sudo bash ~/v2x-project/scripts/run_step2_host.sh 1 "heavy handover"</pre>
+<p>Check that:</p>
+<ul>
+<li>Handover gaps fall well below the 6 to 14 seconds seen so far, and vehicles still change RSU (4 <code>HANDOVER</code> events).</li>
+<li><code>heavy</code> under <code>static</code> now shows backhaul pressure, and <code>PROTECT_OFF</code> fires before each trial ends.</li>
+</ul>
+<p>If the gaps remain or vehicles stop associating, <code>range</code> did not behave as expected. In that case, try the propagation exponent next (currently <code>exp=5</code>; the Saraiva code uses 2.8), and measure the real coverage distance first.</p>
+
+<h3>Step 2: Rerun the Step 12 check</h3>
+<p>The topology has changed since Step 12 passed, so connectivity needs confirming. This also re-exercises the meter and handover checks. It needs the plot display enabled first.</p>
+<pre>DISPLAY=:1 xhost +local:docker
+DISPLAY=:1 sudo --preserve-env=DISPLAY bash ~/v2x-project/scripts/verify_step12_host.sh</pre>
+<p>Expect 90/90 after warm-up, 4 <code>HANDOVER</code> events, and same-RSU platoon counters above 0. Note that the script overwrites <code>logs/step12</code>, so earlier runs are kept in the numbered folders.</p>
+
+<h3>Step 3: Decide the threshold policy</h3>
+<p>This is the main open decision. The loop currently halves eMBB whenever critical traffic reaches 500 kb/s on a switch, even if 12 Mb/s of eMBB would still fit. The options are:</p>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="27%">Option</th><th width="39%">For</th><th width="34%">Against</th></tr>
+<tr><td><b>Keep the current fixed cut</b></td><td>Simple, already tested, and easy to explain</td><td>Gives up half of eMBB throughput, possibly for little benefit</td></tr>
+<tr><td><b>Capacity-aware cut</b> (eMBB budget = link capacity minus critical load minus a margin)</td><td>Only cuts eMBB when needed, which may make a stronger contribution</td><td>New code and more tuning. All setups need rerunning afterwards</td></tr>
+</table>
+<p><br>Base this on the new <code>heavy</code> result. If the fixed cut shows a clear benefit when the backhaul overflows, keeping it and explaining the trade-off is reasonable. If not, the capacity-aware cut is worth trying. Decide this before the full repeats, because changing it later would mean rerunning them.</p>
+
+<h3>Step 4: Finish the remaining functional tests</h3>
+<ul>
+<li>REST <code>PUT</code> resize, confirming the meter changes on the switches and that traffic follows.</li>
+<li>URLLC, mMTC and best-effort meter limits under an overload. So far only platoon has been directly tested with a flood, and eMBB has only been seen staying under its limit.</li>
+</ul>
+
+<h3>Step 5: Run the full experiments (about 70 minutes for 5 repeats)</h3>
+<p>Keep the pilot logs first, because the runner overwrites matching trial folders:</p>
+<pre>mv ~/v2x-project/logs/step2 ~/v2x-project/logs/step2_pilot2
+sudo bash ~/v2x-project/scripts/run_step2_host.sh 5
+python3 ~/v2x-project/experiments/analyze.py</pre>
+<p>Stop other containers and heavy programs on the laptop during the run. Five repeats is a practical starting point, not a calculated sample size, so raise it if the spread between repeats is large.</p>
+
+<h3>Step 6: Analyse and write up</h3>
+<ul>
+<li>Plot RTT distributions and throughput by setup, with error bars across repeats.</li>
+<li>State the limitations: beacons on the best-effort slice, the chosen <code>heavy</code> load, Wi-Fi as a second bottleneck, no nearest-MEC steering after handover, and scripted mobility in place of SUMO.</li>
+<li>Pull the full text of the Saraiva paper before citing it, and of papers 3, 4 and 5 before using them, as the survey itself advises.</li>
+</ul>
+
+<h3>Housekeeping</h3>
+<ul>
+<li>Update the handoff notes. Section 4 is missing the topology changes. Section 6 blames stale MAC learning for the 74/90 result, which does not fit the evidence. Section 9 still lists the orchestrator as unverified.</li>
+<li>Initialise a git repository, so that the exact code behind each result can be identified.</li>
+<li>Remove the leftover root-owned <code>mn170_rsu1-wlan1.apconf</code> and <code>mn170_rsu2-wlan1.apconf</code> from the project folder. This needs <code>sudo</code>.</li>
+<li>Optional items from the handoff: write Environment Setup Guide Part 3, suppress the harmless HTB quantum warnings, and add nearest-MEC steering after handover as future work.</li>
+</ul>
+
+<h2>9. Where to find everything</h2>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="38%">Path (under <code>~/v2x-project</code>)</th><th width="62%">Contents</th></tr>
+<tr><td><code>logs/step12_run1</code> to <code>step12_run4</code></td><td>Step 12 logs: RYU, topology, OVS and Mininet cleanup</td></tr>
+<tr><td><code>logs/step2_pilot1/trials.csv</code></td><td>First pilot, one row per flow, window and trial</td></tr>
+<tr><td><code>logs/step2_pilot1/summary.md</code></td><td>First pilot, all summary tables</td></tr>
+<tr><td><code>logs/step2_pilot1/&lt;scenario&gt;/&lt;setup&gt;/r1</code></td><td>Raw probe CSVs, eMBB JSON, controller events and meter statistics</td></tr>
+<tr><td><code>docs/V2X_Progress_Report.pdf</code></td><td>This report. Its source is <code>docs/report_src/V2X_Progress_Report.html</code></td></tr>
+</table>
+
+</body>
+</html>

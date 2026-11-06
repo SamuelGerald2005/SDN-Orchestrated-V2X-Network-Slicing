@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V2X Slicing Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <h1>V2X Slicing Dashboard</h1>
+    <p>SDN-orchestrated network slicing on a Mininet-WiFi + RYU testbed</p>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-view="run" aria-selected="true">Run</button>
+    <button role="tab" data-view="results" aria-selected="false">Experiment results</button>
+    <button role="tab" data-view="explain" aria-selected="false">How it works</button>
+  </nav>
+  <button id="theme" class="ghost" title="Switch light / dark">Theme</button>
+</header>
+
+<main>
+<!-- ============================== RUN VIEW ============================== -->
+<section id="view-run" class="view">
+  <div class="controls">
+    <label>Recording
+      <select id="source"></select>
+    </label>
+    <label>Compare with
+      <select id="compare"><option value="">Nothing</option></select>
+    </label>
+    <button id="play" class="primary">Play</button>
+    <label>Speed
+      <select id="speed"><option>1</option><option selected>2</option><option>4</option><option>8</option></select>
+    </label>
+    <input id="scrub" type="range" min="0" max="100" step="0.1" value="0" aria-label="Playback position">
+    <span id="clock" class="clock">0.0 s</span>
+  </div>
+  <div id="config" class="chips"></div>
+
+  <div class="kpis">
+    <div class="kpi" id="kpi-urllc"><div class="kpi-label">URLLC delay, worst flow (p95)</div><div class="kpi-value">-</div><div class="kpi-sub"></div></div>
+    <div class="kpi" id="kpi-platoon"><div class="kpi-label">Platoon loss (last second)</div><div class="kpi-value">-</div><div class="kpi-sub"></div></div>
+    <div class="kpi" id="kpi-embb"><div class="kpi-label">eMBB arriving at s1</div><div class="kpi-value">-</div><div class="kpi-sub"></div></div>
+    <div class="kpi" id="kpi-orch"><div class="kpi-label">Orchestrator</div><div class="kpi-value">-</div><div class="kpi-sub"></div></div>
+  </div>
+
+  <div class="grid">
+    <div class="card map-card">
+      <div class="card-head"><h2>Vehicles, RSUs and backhaul</h2><span class="hint">Dashed line: the RSU a vehicle is connected to. Ring: a handover just happened.</span></div>
+      <svg id="map" viewBox="0 0 540 530" role="img" aria-label="Map of vehicles and RSUs"></svg>
+    </div>
+    <div class="card events-card">
+      <div class="card-head"><h2>Controller events</h2><span class="hint">Click an event to jump to it</span></div>
+      <ol id="events" class="events"></ol>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <div class="card-head"><h2>Round-trip time by flow</h2><span class="hint">95th percentile per second, log scale</span></div>
+      <div class="legend" id="rtt-legend"></div>
+      <div class="chart-wrap"><svg id="rtt" class="chart" viewBox="0 0 640 260"></svg></div>
+      <div id="rtt-compare-wrap" hidden>
+        <div class="card-sub" id="rtt-compare-title"></div>
+        <div class="chart-wrap"><svg id="rtt-compare" class="chart" viewBox="0 0 640 260"></svg></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Slice traffic through <span id="sw-name">s1</span></h2>
+        <div class="seg" id="sw-pick"><button data-sw="s1" aria-pressed="true">s1</button><button data-sw="rsu1" aria-pressed="false">rsu1</button><button data-sw="rsu2" aria-pressed="false">rsu2</button></div>
+      </div>
+      <div class="legend" id="tput-legend"></div>
+      <div class="chart-wrap"><svg id="tput" class="chart" viewBox="0 0 640 260"></svg></div>
+      <h3>Now: traffic arriving at each slice's meter, against its limit</h3>
+      <div id="bullets" class="bullets"></div>
+    </div>
+  </div>
+  <details class="card table-card">
+    <summary>Table view of the current moment</summary>
+    <div id="now-table"></div>
+  </details>
+</section>
+
+<!-- ============================ RESULTS VIEW ============================ -->
+<section id="view-results" class="view" hidden>
+  <div class="controls">
+    <label>Scenario <select id="r-scenario"></select></label>
+    <label>Window <select id="r-window"></select></label>
+    <label>Measure <select id="r-metric"></select></label>
+  </div>
+  <p id="r-note" class="note"></p>
+  <div id="r-charts" class="multiples"></div>
+  <details class="card table-card" open>
+    <summary>All numbers for this scenario and window</summary>
+    <div id="r-table"></div>
+  </details>
+</section>
+
+<!-- ============================ EXPLAIN VIEW ============================ -->
+<section id="view-explain" class="view" hidden>
+  <div class="card explain">
+    <h2>What the testbed is</h2>
+    <p>Six vehicles drive between two roadside units (RSUs). Each RSU is an Open vSwitch access point with an edge (MEC) server attached. Both RSUs connect over a 20 Mb/s, 5 ms backhaul to an aggregation switch, <b>s1</b>, which leads to a central infotainment server and a telemetry server (15 ms away). A RYU application, the <b>orchestrator</b>, controls all three switches over OpenFlow 1.3.</p>
+    <svg id="arch" viewBox="0 0 900 300" role="img" aria-label="Architecture diagram"></svg>
+    <h2>The five slices</h2>
+    <div id="slice-table"></div>
+    <h2>What happens to a packet</h2>
+    <ol class="steps">
+      <li><b>Classify.</b> Table 0 on every switch matches the packet's protocol and port and assigns it to a slice. Anything that matches no slice is best effort.</li>
+      <li><b>Police.</b> The packet passes through its slice's OpenFlow meter. Above the slice's budget, packets are dropped, so one slice can't take another's bandwidth.</li>
+      <li><b>Mark.</b> The switch writes a DSCP value into the packet. On the backhaul links, three strict-priority queues read it: URLLC and platoon first, mMTC second, eMBB and best effort last.</li>
+      <li><b>Forward.</b> Table 1 learns where each vehicle is. When a vehicle appears behind a different port, that's a <b>handover</b>: old flows are deleted everywhere so traffic follows the vehicle.</li>
+    </ol>
+    <h2>The threshold loop</h2>
+    <p>Every 2 seconds the orchestrator reads each meter's byte counter and works out each slice's rate. If critical traffic (URLLC + platoon) plus eMBB would overflow the 20 Mb/s backhaul, it lowers the eMBB meter to what's left (<b>PROTECT_ON</b>, then <b>ADJUST</b> as the load changes), and restores it when the critical slices go quiet (<b>PROTECT_OFF</b>). eMBB is never squeezed below 2 Mb/s.</p>
+    <h2>The setups compared</h2>
+    <div id="setup-table"></div>
+  </div>
+</section>
+</main>
+
+<div id="tooltip" class="tooltip" role="status" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

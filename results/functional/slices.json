@@ -1,0 +1,106 @@
+{
+  "slicing_enabled": true,
+  "dynamic_enabled": true,
+  "priority_enabled": true,
+  "policy": "capacity",
+  "link_capacity_kbps": 20000,
+  "slices": {
+    "urllc": {
+      "meter": 1,
+      "proto": 17,
+      "port": 5000,
+      "kbps": 5000,
+      "dscp": 46,
+      "critical": true,
+      "desc": "Safety messages -> RSU edge (MEC) server",
+      "budget_kbps": 5000
+    },
+    "platoon": {
+      "meter": 2,
+      "proto": 17,
+      "port": 9000,
+      "kbps": 4000,
+      "dscp": 40,
+      "critical": true,
+      "desc": "Cooperative driving / platooning (V2V)",
+      "budget_kbps": 4000
+    },
+    "embb": {
+      "meter": 3,
+      "proto": 6,
+      "port": 8080,
+      "kbps": 12000,
+      "dscp": 10,
+      "critical": false,
+      "desc": "Infotainment -> central server",
+      "budget_kbps": 12000
+    },
+    "mmtc": {
+      "meter": 4,
+      "proto": 17,
+      "port": 1883,
+      "kbps": 1000,
+      "dscp": 18,
+      "critical": false,
+      "desc": "Vehicle telemetry -> central server",
+      "budget_kbps": 1000
+    }
+  },
+  "best_effort": {
+    "meter": 5,
+    "kbps": 2000
+  },
+  "switches": {
+    "1152921504606846977": {
+      "protecting_critical": true,
+      "installed_kbps": {
+        "1": 5000,
+        "2": 4000,
+        "3": 8000,
+        "4": 1000,
+        "5": 2000
+      },
+      "measured_kbps": {
+        "mmtc": 0.0,
+        "urllc": 10288.5,
+        "best_effort": 4.7,
+        "platoon": 0.0,
+        "embb": -49268.2
+      }
+    },
+    "1152921504606846978": {
+      "protecting_critical": false,
+      "installed_kbps": {
+        "1": 5000,
+        "2": 4000,
+        "3": 12000,
+        "4": 1000,
+        "5": 2000
+      },
+      "measured_kbps": {
+        "mmtc": 0.0,
+        "urllc": 0.0,
+        "best_effort": 5.4,
+        "platoon": 0.0,
+        "embb": 0.0
+      }
+    },
+    "1": {
+      "protecting_critical": false,
+      "installed_kbps": {
+        "1": 5000,
+        "2": 4000,
+        "3": 12000,
+        "4": 1000,
+        "5": 2000
+      },
+      "measured_kbps": {
+        "mmtc": 0.0,
+        "urllc": 0.0,
+        "best_effort": 10.1,
+        "platoon": 0.0,
+        "embb": 0.0
+      }
+    }
+  }
+}

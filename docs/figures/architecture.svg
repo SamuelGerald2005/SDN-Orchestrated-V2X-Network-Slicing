@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1040" viewBox="0 0 900 520" font-family="Liberation Sans, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52514e"/></marker></defs>
+<text x="10" y="22" font-size="15" font-weight="bold" fill="#0b0b0b">Testbed topology</text>
+
+<!-- controller -->
+<rect x="270" y="38" width="360" height="52" rx="8" fill="#12344d"/>
+<text x="450" y="60" font-size="13" font-weight="bold" text-anchor="middle" fill="#fff">RYU 4.34 + v2x_orchestrator</text>
+<text x="450" y="78" font-size="11" text-anchor="middle" fill="#d6e2ec">slices · meters · DSCP · capacity loop · handovers · REST</text>
+<line x1="450" y1="90" x2="450" y2="120" stroke="#898781" stroke-dasharray="4 3"/>
+<text x="462" y="110" font-size="10" fill="#52514e">OpenFlow 1.3 to s1, rsu1 and rsu2</text>
+
+<!-- s1 -->
+<rect x="390" y="120" width="120" height="42" rx="6" fill="#e4ebf1" stroke="#12344d"/>
+<text x="450" y="139" font-size="12" font-weight="bold" text-anchor="middle" fill="#12344d">s1</text>
+<text x="450" y="154" font-size="10" text-anchor="middle" fill="#52514e">aggregation switch</text>
+<rect x="660" y="120" width="210" height="42" rx="6" fill="#f4f3ef" stroke="#c3c2b7"/>
+<text x="765" y="138" font-size="11" font-weight="bold" text-anchor="middle" fill="#0b0b0b">infotain 10.0.0.20 · telemetry .30</text>
+<text x="765" y="153" font-size="10" text-anchor="middle" fill="#52514e">central servers</text>
+<line x1="510" y1="141" x2="660" y2="141" stroke="#52514e" stroke-width="1.5"/>
+<text x="600" y="135" font-size="10" text-anchor="middle" fill="#52514e">100 Mb/s, 15 ms</text>
+
+<!-- RSUs -->
+<rect x="110" y="196" width="150" height="46" rx="6" fill="#e4ebf1" stroke="#12344d"/>
+<text x="185" y="216" font-size="12" font-weight="bold" text-anchor="middle" fill="#12344d">rsu1 (channel 1)</text>
+<text x="185" y="232" font-size="10" text-anchor="middle" fill="#52514e">OVS access point, 30 m</text>
+<rect x="640" y="196" width="150" height="46" rx="6" fill="#e4ebf1" stroke="#12344d"/>
+<text x="715" y="216" font-size="12" font-weight="bold" text-anchor="middle" fill="#12344d">rsu2 (channel 6)</text>
+<text x="715" y="232" font-size="10" text-anchor="middle" fill="#52514e">OVS access point, 30 m</text>
+<line x1="400" y1="162" x2="250" y2="196" stroke="#eb6834" stroke-width="3"/>
+<line x1="500" y1="162" x2="650" y2="196" stroke="#eb6834" stroke-width="3"/>
+<text x="300" y="168" font-size="10" text-anchor="middle" fill="#0b0b0b">backhaul 20 Mb/s, 5 ms</text>
+<text x="600" y="168" font-size="10" text-anchor="middle" fill="#0b0b0b">backhaul 20 Mb/s, 5 ms</text>
+
+<!-- MEC -->
+<rect x="10" y="270" width="110" height="40" rx="6" fill="#f4f3ef" stroke="#c3c2b7"/>
+<text x="65" y="287" font-size="11" font-weight="bold" text-anchor="middle" fill="#0b0b0b">MEC 1</text>
+<text x="65" y="301" font-size="10" text-anchor="middle" fill="#52514e">10.0.0.11</text>
+<rect x="780" y="270" width="110" height="40" rx="6" fill="#f4f3ef" stroke="#c3c2b7"/>
+<text x="835" y="287" font-size="11" font-weight="bold" text-anchor="middle" fill="#0b0b0b">MEC 2</text>
+<text x="835" y="301" font-size="10" text-anchor="middle" fill="#52514e">10.0.0.12</text>
+<line x1="140" y1="242" x2="80" y2="270" stroke="#52514e" stroke-width="1.5"/>
+<line x1="760" y1="242" x2="820" y2="270" stroke="#52514e" stroke-width="1.5"/>
+<text x="62" y="254" font-size="10" fill="#52514e">0.5 ms</text>
+<text x="804" y="254" font-size="10" fill="#52514e">0.5 ms</text>
+
+<!-- vehicles -->
+<rect x="230" y="285" width="440" height="40" rx="6" fill="#fdf0e9" stroke="#eb6834"/>
+<text x="450" y="302" font-size="12" font-weight="bold" text-anchor="middle" fill="#0b0b0b">veh1 … veh6 (Wi-Fi stations, 10.0.0.1–6)</text>
+<text x="450" y="317" font-size="10" text-anchor="middle" fill="#52514e">scripted intersecting paths, or random waypoint · 1 s beacon</text>
+<line x1="210" y1="242" x2="290" y2="285" stroke="#52514e" stroke-dasharray="2 3"/>
+<line x1="690" y1="242" x2="610" y2="285" stroke="#52514e" stroke-dasharray="2 3"/>
+<text x="262" y="262" font-size="10" fill="#52514e">802.11g</text>
+<text x="600" y="262" font-size="10" fill="#52514e">802.11g</text>
+
+<!-- pipeline -->
+<text x="10" y="365" font-size="15" font-weight="bold" fill="#0b0b0b">What every switch does to a packet</text>
+<g font-size="11">
+<rect x="10" y="380" width="160" height="62" rx="6" fill="#e9f1fb" stroke="#2a78d6"/>
+<text x="90" y="398" text-anchor="middle" font-weight="bold" fill="#0b0b0b">1. Classify (table 0)</text>
+<text x="90" y="414" text-anchor="middle" fill="#52514e">protocol + port</text>
+<text x="90" y="429" text-anchor="middle" fill="#52514e">→ slice</text>
+<line x1="170" y1="411" x2="190" y2="411" stroke="#52514e" marker-end="url(#a)"/>
+<rect x="192" y="380" width="160" height="62" rx="6" fill="#e9f1fb" stroke="#2a78d6"/>
+<text x="272" y="398" text-anchor="middle" font-weight="bold" fill="#0b0b0b">2. Police (meter)</text>
+<text x="272" y="414" text-anchor="middle" fill="#52514e">drop above the</text>
+<text x="272" y="429" text-anchor="middle" fill="#52514e">slice budget</text>
+<line x1="352" y1="411" x2="372" y2="411" stroke="#52514e" marker-end="url(#a)"/>
+<rect x="374" y="380" width="160" height="62" rx="6" fill="#e9f1fb" stroke="#2a78d6"/>
+<text x="454" y="398" text-anchor="middle" font-weight="bold" fill="#0b0b0b">3. Mark (set DSCP)</text>
+<text x="454" y="414" text-anchor="middle" fill="#52514e">46 / 40 / 18 / 10</text>
+<text x="454" y="429" text-anchor="middle" fill="#52514e">per slice</text>
+<line x1="534" y1="411" x2="554" y2="411" stroke="#52514e" marker-end="url(#a)"/>
+<rect x="556" y="380" width="160" height="62" rx="6" fill="#e9f1fb" stroke="#2a78d6"/>
+<text x="636" y="398" text-anchor="middle" font-weight="bold" fill="#0b0b0b">4. Forward (table 1)</text>
+<text x="636" y="414" text-anchor="middle" fill="#52514e">MAC learning that</text>
+<text x="636" y="429" text-anchor="middle" fill="#52514e">follows handovers</text>
+<line x1="716" y1="411" x2="736" y2="411" stroke="#52514e" marker-end="url(#a)"/>
+<rect x="738" y="380" width="152" height="62" rx="6" fill="#fdf0e9" stroke="#eb6834"/>
+<text x="814" y="398" text-anchor="middle" font-weight="bold" fill="#0b0b0b">5. Backhaul queue</text>
+<text x="814" y="414" text-anchor="middle" fill="#52514e">strict priority by DSCP</text>
+<text x="814" y="429" text-anchor="middle" fill="#52514e">band 1 → 2 → 3</text>
+</g>
+<rect x="192" y="458" width="342" height="50" rx="6" fill="#ffffff" stroke="#12344d" stroke-dasharray="4 3"/>
+<text x="363" y="477" font-size="11" font-weight="bold" text-anchor="middle" fill="#12344d">Capacity loop, every 2 s</text>
+<text x="363" y="494" font-size="10" text-anchor="middle" fill="#52514e">read meter counters → eMBB = 20 Mb/s − critical − 1.5 Mb/s</text>
+<line x1="272" y1="458" x2="272" y2="444" stroke="#12344d" marker-end="url(#a)"/>
+</svg>

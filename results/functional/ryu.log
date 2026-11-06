@@ -1,0 +1,34 @@
+loading app /app/project/controller/v2x_orchestrator.py
+loading app ryu.controller.ofp_handler
+creating context wsgi
+instantiating app /app/project/controller/v2x_orchestrator.py of V2XOrchestrator
+START slicing ENABLED, priority queues ENABLED, threshold loop ENABLED (capacity policy)
+instantiating app ryu.controller.ofp_handler of OFPHandler
+(179) wsgi starting up on http://0.0.0.0:8081
+SWITCH dpid 1152921504606846977 connected
+SWITCH dpid 1152921504606846978 connected
+SWITCH dpid 1 connected
+HANDOVER 00:00:00:00:00:04 dpid 1152921504606846977 port 3 -> 1, flows flushed
+HANDOVER 00:00:00:00:00:01 dpid 1152921504606846978 port 3 -> 1, flows flushed
+HANDOVER 00:00:00:00:00:03 dpid 1152921504606846977 port 3 -> 1, flows flushed
+HANDOVER 00:00:00:00:00:02 dpid 1152921504606846978 port 3 -> 1, flows flushed
+PROTECT_ON dpid 1152921504606846977 critical load 7274 kb/s, eMBB -> 11000 kb/s
+ADJUST dpid 1152921504606846977 critical load 10290 kb/s, eMBB -> 8000 kb/s
+ADJUST dpid 1152921504606846977 critical load 8154 kb/s, eMBB -> 10000 kb/s
+PROTECT_OFF dpid 1152921504606846977 critical load 0 kb/s, eMBB -> 12000 kb/s
+(179) accepted ('127.0.0.1', 57428)
+RESIZE urllc budget -> 3000 kb/s
+127.0.0.1 - - [06/Nov/2026 01:02:55] "PUT /v2x/slices/urllc HTTP/1.1" 200 283 0.001048
+PROTECT_ON dpid 1152921504606846977 critical load 10290 kb/s, eMBB -> 8000 kb/s
+(179) accepted ('127.0.0.1', 48472)
+RESIZE urllc budget -> 5000 kb/s
+127.0.0.1 - - [06/Nov/2026 01:03:01] "PUT /v2x/slices/urllc HTTP/1.1" 200 283 0.000452
+(179) accepted ('127.0.0.1', 48476)
+127.0.0.1 - - [06/Nov/2026 01:03:01] "PUT /v2x/slices/nosuch HTTP/1.1" 404 149 0.000222
+(179) accepted ('127.0.0.1', 48488)
+127.0.0.1 - - [06/Nov/2026 01:03:01] "PUT /v2x/slices/urllc HTTP/1.1" 400 154 0.000228
+(179) accepted ('127.0.0.1', 48492)
+127.0.0.1 - - [06/Nov/2026 01:03:02] "GET /v2x/events HTTP/1.1" 200 2041 0.000247
+(179) accepted ('127.0.0.1', 48500)
+127.0.0.1 - - [06/Nov/2026 01:03:02] "GET /v2x/slices HTTP/1.1" 200 2270 0.000261
+PROTECT_OFF dpid 1152921504606846977 critical load -22608 kb/s, eMBB -> 12000 kb/s

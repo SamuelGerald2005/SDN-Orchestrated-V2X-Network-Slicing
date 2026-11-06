@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>V2X Slicing: Project Explanation for the Evaluation</title>
+<style>
+@page { size: A4; margin: 18mm 17mm 17mm 17mm; }
+body { font-family: "Liberation Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.34; color: #1f2933; }
+h1, h2, h3 { font-family: "Liberation Sans", Arial, sans-serif; }
+h1 { font-size: 21pt; color: #12344d; margin: 0 0 3pt 0; }
+h2 { font-size: 14pt; color: #12344d; margin: 16pt 0 5pt 0; }
+h3 { font-size: 11pt; color: #1f5f8b; margin: 10pt 0 3pt 0; }
+p { margin: 0 0 6pt 0; }
+li { margin: 0 0 3pt 0; }
+th { font-size: 9pt; color: #12344d; text-align: left; }
+td { font-size: 9pt; vertical-align: top; }
+code { font-family: "Liberation Mono", monospace; font-size: 8.5pt; }
+pre { font-family: "Liberation Mono", monospace; font-size: 8.5pt; background: #eef2f6; margin: 2pt 0 7pt 0; }
+.sub { color: #52606d; font-size: 10pt; }
+.note { color: #52606d; font-size: 9pt; }
+.cap { color: #52606d; font-size: 9pt; margin: 2pt 0 10pt 0; }
+.key { background: #eef5ec; }
+</style>
+</head>
+<body>
+<div type="FOOTER"><p align="center" class="note">V2X Slicing: Project Explanation &nbsp;|&nbsp; Page <sdfield type="PAGE" subtype="RANDOM" format="PAGE">1</sdfield></p></div>
+
+<h1>SDN-Orchestrated Network Slicing for Vehicular 5G (V2X)</h1>
+<p class="sub">Project explanation for the evaluation &nbsp;·&nbsp; A. Adharsh, Rishabh Bhat, Samuel Gerald &nbsp;·&nbsp; 6 November 2026<br>
+Mininet-WiFi + RYU 4.34 (OpenFlow 1.3) + Open vSwitch, in Docker on Ubuntu 24.04</p>
+
+<h2>1. The project in one page</h2>
+<p><b>The problem.</b> Connected vehicles share one roadside network between very different kinds of traffic. A collision warning must arrive within milliseconds; a passenger's video stream just wants as much bandwidth as it can get. When the shared backhaul link fills up, plain best-effort networking delays both equally, so the safety message waits behind the video.</p>
+<p><b>What we built.</b> An emulated V2X network of six moving vehicles, two roadside units (RSUs) with edge (MEC) servers, a 20 Mb/s backhaul and central servers, all controlled by an SDN controller application we wrote, the <b>orchestrator</b>. It splits traffic into five <b>slices</b> and gives each one guaranteed treatment:</p>
+<ol>
+<li><b>Isolation:</b> every slice is rate-limited by its own OpenFlow meter, so no slice can take another's bandwidth.</li>
+<li><b>Priority:</b> the controller marks each packet (DSCP), and strict-priority queues on the backhaul always send safety traffic first.</li>
+<li><b>Dynamic reallocation:</b> every 2 seconds the orchestrator measures each slice and shrinks the infotainment (eMBB) slice to whatever the safety slices leave free on the link. Operators can also resize any slice live through a REST API.</li>
+<li><b>Mobility:</b> when a vehicle hands over to the other RSU, the orchestrator notices, deletes the old forwarding rules everywhere, and traffic follows the vehicle.</li>
+</ol>
+<p><b>How we tested it.</b> A fully scripted benchmark: 5 configurations (from no slicing to the full system) × 4 scenarios (congestion, heavy critical load, handover, random mobility) × 5 repeats = 80 trials, each measuring per-packet delay, jitter, loss and delivery gaps on every slice.</p>
+
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="5" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="40%">Headline result (95th percentile round-trip time during an eMBB flood)</th><th width="20%">Best effort</th><th width="20%">Full system</th><th width="20%">Improvement</th></tr>
+<tr><td>Platoon (vehicle-to-vehicle) traffic, congestion</td><td>3.8 s, 7.7 % loss</td><td class="key">24.9 ms, 0 % loss</td><td>about 150×</td></tr>
+<tr><td>URLLC safety traffic to the edge server, congestion</td><td>2.4 s</td><td class="key">4.7 ms</td><td>about 500×</td></tr>
+<tr><td>Platoon traffic, heavy critical load</td><td>702 ms</td><td class="key">23.2 ms</td><td>about 30×</td></tr>
+<tr><td>Same, with rate limiting only (no priority, no loop)</td><td colspan="3">203 ms: meters alone are <b>not enough</b> once critical traffic is heavy</td></tr>
+</table>
+<p class="note"><br>Every number in this document is a mean over 5 independent repeats; the spread between repeats is under 1 % for the parked scenarios.</p>
+
+<h2>2. The testbed</h2>
+<p align="center"><img src="../figures/architecture.png" width="640" height="370"></p>
+<p class="cap">Figure 1. Topology (top) and the processing every switch applies to a packet (bottom).</p>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="24%">Component</th><th width="76%">What it is and why</th></tr>
+<tr><td>Mininet-WiFi + wmediumd</td><td>Emulates real Linux network stacks, Wi-Fi radios (mac80211_hwsim) and an interference/propagation model, so vehicles associate, lose signal and re-associate like real stations</td></tr>
+<tr><td>Open vSwitch (3 switches)</td><td><code>rsu1</code> and <code>rsu2</code> are Wi-Fi access points that are also OpenFlow switches; <code>s1</code> aggregates them. All three run OpenFlow 1.3, which has the meters we need</td></tr>
+<tr><td>RYU 4.34 + orchestrator</td><td>RYU is the SDN controller framework. Our orchestrator (<code>controller/v2x_orchestrator.py</code>) is a RYU application: it owns the slices, installs the rules and meters, runs the loop, tracks vehicles and serves a REST API on port 8081</td></tr>
+<tr><td>Edge (MEC) servers</td><td>One per RSU, 0.5 ms away. Safety traffic to the vehicle's own MEC never crosses the backhaul (measured 1.2 ms round trip, against 40.7 ms to the central servers)</td></tr>
+<tr><td>Backhaul</td><td>20 Mb/s, 5 ms each way, the bottleneck on purpose. Both ends carry a strict-priority queue tree (Section 3.4)</td></tr>
+<tr><td>Vehicles</td><td>6 Wi-Fi stations. Either scripted intersecting paths that force handovers between the RSUs, or random waypoint (2–4 m/s, seeded so runs repeat)</td></tr>
+</table>
+
+<h2>3. How the orchestrator works</h2>
+<h3>3.1 The five slices</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th>Slice</th><th>Use in V2X</th><th>Traffic</th><th>Meter</th><th>Budget</th><th>DSCP</th><th>Queue band</th></tr>
+<tr><td><b>URLLC</b></td><td>Safety messages to the edge</td><td>UDP 5000</td><td>1</td><td>5 Mb/s</td><td>46 (EF)</td><td>1, highest</td></tr>
+<tr><td><b>Platoon</b></td><td>Cooperative driving, vehicle to vehicle</td><td>UDP 9000</td><td>2</td><td>4 Mb/s</td><td>40 (CS5)</td><td>1, highest</td></tr>
+<tr><td><b>eMBB</b></td><td>Infotainment downloads</td><td>TCP 8080</td><td>3</td><td>12 Mb/s, adjusted by the loop</td><td>10 (AF11)</td><td>3, lowest</td></tr>
+<tr><td><b>mMTC</b></td><td>Vehicle telemetry</td><td>UDP 1883 (MQTT)</td><td>4</td><td>1 Mb/s</td><td>18 (AF21)</td><td>2</td></tr>
+<tr><td>Best effort</td><td>Everything else</td><td>any</td><td>5</td><td>2 Mb/s</td><td>0</td><td>3, lowest</td></tr>
+</table>
+<h3>3.2 Classification, policing and marking (flow table 0)</h3>
+<p>When a switch connects, the orchestrator proactively installs one rule per slice and direction (matching the destination port and the source port, so replies are classified too). Each rule does three things: send the packet through the slice's <b>meter</b>, <b>set its DSCP</b> field, and continue to table 1. An OpenFlow meter is a token-bucket rate limiter inside the switch: packets above the slice budget are dropped. The functional tests show the meters are exact: a 10 Mb/s URLLC flood came out at 4.96 Mb/s (limit 5), mMTC 2 → 0.99 Mb/s, best effort 4 → 1.97 Mb/s, eMBB TCP 11.3 Mb/s (limit 12).</p>
+<h3>3.3 Mobility-aware forwarding (flow table 1)</h3>
+<p>Table 1 learns which port each vehicle's address is behind. If a vehicle's address appears behind a different port, it has moved: the orchestrator logs a <b>HANDOVER</b> and deletes that vehicle's forwarding rules on every switch, so the next packets are forwarded towards its new RSU. Two further fixes were needed for this to work on Wi-Fi, both visible in the code:</p>
+<ul>
+<li>The RSUs forget departed vehicles quickly (hostapd settings taken from Saraiva et al.'s public code), and each vehicle sends a 1-second beacon so the network keeps seeing it. Without this, 16 of 90 vehicle-to-vehicle pairs failed after the vehicles moved; with it, 90/90.</li>
+<li>Two vehicles on the same RSU used to be bridged inside the access point and never reached OpenFlow, so they bypassed their slice meter. Client isolation now forces that traffic into OVS, and the controller sends it back out the same Wi-Fi port.</li>
+</ul>
+<h3>3.4 Strict-priority queues on the backhaul</h3>
+<p>Meters stop a slice from taking more than its share, but packets that are within budget still share one queue. Under heavy load a safety packet can still wait behind hundreds of video packets. So each end of both backhaul links gets a Linux queue tree:</p>
+<pre>HTB 20 Mbit/s (the link rate)
+ └─ prio, 3 bands, always serves band 1 before 2 before 3
+     ├─ band 1: DSCP 46, 40  (URLLC, platoon)   → netem 5 ms
+     ├─ band 2: DSCP 18      (mMTC)             → netem 5 ms
+     └─ band 3: everything else (eMBB, best effort) → netem 5 ms</pre>
+<p>The packet counters prove the marking works end to end: in a heavy-load trial about 61 MB went through band 1 when marking was on, and 0 bytes when it was off.</p>
+<h3>3.5 Dynamic reallocation: the capacity loop and the REST API</h3>
+<p>Every 2 seconds the orchestrator reads every meter's byte counter and computes each slice's rate on each switch. If the critical slices (URLLC + platoon) plus eMBB's budget would overflow the 20 Mb/s backhaul, it lowers eMBB's meter to what is left:</p>
+<pre>eMBB budget = 20 000 − critical load − 1 500 headroom   (kb/s, 500 kb/s steps, never below 2 000)</pre>
+<p>It logs <b>PROTECT_ON</b> when it starts, <b>ADJUST</b> when the load changes, and <b>PROTECT_OFF</b> when critical traffic goes quiet and eMBB gets its full 12 Mb/s back. In every heavy-load trial this fired on all three switches (for example: critical 7.9 Mb/s → eMBB 10.5 Mb/s, then 8.6 Mb/s → 9.5 Mb/s, then back to 12 Mb/s). The REST API (<code>GET /v2x/slices</code>, <code>PUT /v2x/slices/&lt;name&gt;</code>, <code>GET /v2x/events</code>) lets an operator do the same by hand: setting URLLC to 3000 kb/s changed the meter immediately and the flow dropped to 2.98 Mb/s.</p>
+
+<h2>4. How we tested it</h2>
+<h3>4.1 Five configurations, each adding one mechanism</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="22%">Setup</th><th width="13%">Meters</th><th width="17%">Priority queues</th><th width="15%">Capacity loop</th><th width="33%">Question it answers</th></tr>
+<tr><td>best_effort</td><td>–</td><td>–</td><td>–</td><td>What happens with no slicing at all?</td></tr>
+<tr><td>meters_only</td><td>yes</td><td>–</td><td>–</td><td>Is isolation alone enough?</td></tr>
+<tr><td>meters_loop</td><td>yes</td><td>–</td><td>yes</td><td>What does dynamic reallocation add?</td></tr>
+<tr><td>static</td><td>yes</td><td>yes</td><td>–</td><td>What does strict priority add?</td></tr>
+<tr><td><b>orchestrated</b></td><td>yes</td><td>yes</td><td>yes</td><td>The full system</td></tr>
+</table>
+<p class="note"><br>The comparison follows Saraiva et al. (best effort vs QoS-only vs full framework), split further so each mechanism's contribution can be seen.</p>
+<h3>4.2 Four scenarios</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="18%">Scenario</th><th width="82%">What happens</th></tr>
+<tr><td>congestion</td><td>Vehicles parked. Light critical traffic: URLLC to the own-RSU MEC and to the far MEC, and platoon across the RSUs, each 100 packets/s; mMTC 10 packets/s. Then a 30 s eMBB download (4 TCP streams) that alone could fill the backhaul</td></tr>
+<tr><td>heavy</td><td>The same, but the far URLLC and platoon flows are raised to 4.3 and 3.5 Mb/s, so critical traffic plus eMBB's 12 Mb/s really exceeds the 20 Mb/s link. This is the case where meters alone fail</td></tr>
+<tr><td>handover</td><td>Vehicles drive the scripted paths between the RSUs while the flows run. Measures loss and the longest delivery gap across handovers</td></tr>
+<tr><td>random</td><td>Random waypoint mobility (seed = repeat number) together with the eMBB flood</td></tr>
+</table>
+<p>Each trial starts from a clean Mininet and controller, takes about 2 minutes, and records every probe packet (sequence number, send time, round trip), iperf3 throughput, controller events, meter counters and queue counters. <code>experiments/analyze.py</code> computes loss, throughput, RTT mean/95th/99th percentile, jitter and the longest gap per flow in three windows: <i>idle</i> (before the flood), <i>load</i> (during it) and <i>moving</i> (handover scenario), then averages over the 5 repeats.</p>
+
+<h2>5. Results</h2>
+<h3>5.1 Congestion: any form of slicing protects critical traffic</h3>
+<p align="center"><img src="../figures/congestion_load_rtt_p95.png" width="640" height="417"></p>
+<p class="cap">Figure 2. Congestion scenario, 95th percentile RTT during the eMBB flood (log scale; mean of 5 repeats, whiskers one standard deviation).</p>
+<p>Without slicing, eMBB's TCP streams fill the backhaul queue and every other flow waits behind them: platoon reaches 3.8 s with 7.7 % loss, mMTC 3.5 s with 9.8 % loss. With any slicing setup, eMBB is held to its 12 Mb/s budget (11.3 Mb/s measured, against 16.9 Mb/s unrestricted), the link never overflows, and critical flows stay at their idle delay plus about 3 ms with zero loss. Priority queues shave a little more (platoon 24.9 ms against 25.5 ms, jitter 1.5 against 1.7 ms).</p>
+
+<h3>5.2 Heavy critical load: the case that needs priority or reallocation</h3>
+<p align="center"><img src="../figures/heavy_load_rtt_p95.png" width="640" height="417"></p>
+<p class="cap">Figure 3. Heavy scenario, 95th percentile RTT and eMBB throughput during the flood.</p>
+<p>This is the key experiment. The slice budgets add up to more than the link (5 + 4 + 12 + 1 + 2 = 24 Mb/s on a 20 Mb/s link), as in any oversubscribed network. When critical traffic is high, meters alone let eMBB keep its full 12 Mb/s, the link overflows, and critical packets queue: 203 ms. Either of our two mechanisms fixes it:</p>
+<ul>
+<li><b>The capacity loop</b> (meters_loop) shrinks eMBB to 8.9 Mb/s so the link no longer overflows: 24.4 ms.</li>
+<li><b>Strict priority</b> (static) lets critical packets skip the queue even though the link is full: 23.3 ms, and eMBB keeps 11.2 Mb/s.</li>
+<li><b>Both</b> (orchestrated): 23.2 ms, the lowest delay and jitter for every critical flow.</li>
+</ul>
+<p>The trade-off is visible in the eMBB panel: the loop costs eMBB about 2.3 Mb/s, priority alone does not. The loop's value is that it keeps the link from overflowing at all, so it does not depend on every switch having priority queues. In a real network the radio side, for instance, is not under our control.</p>
+
+<h3>5.3 One run, second by second</h3>
+<p align="center"><img src="../figures/timeline_scripted_best_effort_vs_orchestrated.png" width="660" height="430"></p>
+<p class="cap">Figure 4. The two dashboard recordings: identical vehicles, paths and flood (green band), best effort (top) against the full system (bottom).</p>
+<p>The early spikes (0–16 s) are the vehicles driving through the handovers, the same in both runs. During the flood, best effort pushes platoon and URLLC towards 1 s; with the orchestrator they stay flat at about 22 ms.</p>
+
+<h3>5.4 Handover: slicing helps, but the emulator's re-association dominates</h3>
+<p align="center"><img src="../figures/handover_moving_loss_pct.png" width="640" height="212"></p>
+<p class="cap">Figure 5. Handover scenario, packet loss while the vehicles move (the eMBB download runs at the same time).</p>
+<p>Slicing roughly halves the loss during mobility (platoon 82 % → 50 %, URLLC edge 61 % → 26 %), because with best effort the moving vehicles' traffic also queues behind eMBB. But every setup still shows one gap of 7–14 s per handover. We traced this: Mininet-WiFi reports the new association within a second, but the first packet reaches the new RSU's switch 6–10 s later, which is also when the controller logs the HANDOVER. The delay is the emulated station's scan and re-association between two RSUs on different channels, before any packet reaches OpenFlow. The orchestrator cannot shorten it, so we report it as a limitation of the emulation rather than of the slicing (Section 7).</p>
+
+<h3>5.5 Random waypoint</h3>
+<p>Under random mobility the slicing setups again lose less than best effort (platoon 19–22 % against 47 %; mMTC 22–26 % against 59 %), but the spread between seeds is as large as the mean. That is because how long a vehicle spends re-associating depends entirely on its random path. We show these runs (and the dashboard recordings) to demonstrate that the system works under unscripted mobility, not as precise measurements.</p>
+
+<h2>6. The dashboard</h2>
+<p>Start it with <code>python3 ~/v2x-project/dashboard/server.py</code> and open <code>http://127.0.0.1:8090</code>. It needs no sudo, Docker or internet, because it replays recordings made on the testbed.</p>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="20%">Tab</th><th width="80%">What it shows</th></tr>
+<tr><td>Run</td><td>A map of the RSUs (with range circles), the backhaul, MEC servers and the six vehicles moving, a dashed line to the RSU each is attached to and a ring at every handover. Four headline tiles (worst URLLC delay, platoon loss, eMBB at s1, orchestrator state). The RTT chart per flow, a second chart for a "compare with" recording, each slice's throughput and the eMBB limit through any switch, bullet bars of each slice's traffic against its meter limit, the controller's event list (click to jump) and a table view</td></tr>
+<tr><td>Experiment results</td><td>The 5-repeat results for any scenario, window and measure, as bars with standard deviation and as a table</td></tr>
+<tr><td>How it works</td><td>Architecture, slices, packet path, the loop and the setups, for explaining the system</td></tr>
+</table>
+<p class="note"><br>Direct links open a chosen moment, e.g. <code>/?rec=scripted_best_effort&amp;cmp=scripted_orchestrated&amp;t=55</code> or <code>/?view=results&amp;scenario=heavy</code>. For a live demo, run <code>sudo bash scripts/run_live_demo_host.sh orchestrated 30</code> and pick "Live testbed".</p>
+<h3>Suggested 5-minute demo</h3>
+<ol>
+<li><b>How it works tab:</b> 1 minute on the architecture and the five slices.</li>
+<li><b>Run tab</b>, "Best effort, scripted", compare with "Orchestrated, scripted", speed 4. Point out the cars handing over, then at 30 s the eMBB flood: the top RTT chart climbs to about 1 s while the comparison stays flat.</li>
+<li>Switch the recording to <b>Orchestrated</b>, select switch <code>s1</code>: eMBB is held at its 12 Mb/s line, URLLC and platoon are untouched. Click the HANDOVER events to jump to them.</li>
+<li><b>Experiment results tab</b>, scenario "heavy": meters only 203 ms, loop or priority about 23 ms. That is why both mechanisms exist.</li>
+<li>Finish on the random-waypoint pair to show it works without scripted paths.</li>
+</ol>
+
+<h2>7. Limitations, stated plainly</h2>
+<ul>
+<li><b>Handover outage of 7–14 s</b> in every setup, caused by the emulated Wi-Fi re-association (Section 5.4). Likely remedies are both RSUs on one channel, faster station scanning, or Mininet-WiFi's least-loaded-first association. Measured loss during mobility is therefore much higher than a real deployment would see.</li>
+<li><b>Emulation, not hardware:</b> radio behaviour comes from Mininet-WiFi's propagation model; absolute numbers depend on the host CPU. Comparisons between setups on the same host are what we claim.</li>
+<li>The loop counts critical traffic as it arrives at the meter, before drops, so a misbehaving critical flow above its own budget still shrinks eMBB.</li>
+<li>No SUMO road network: "road-constrained" mobility means the scripted paths. Random waypoint can wander slightly outside its box.</li>
+<li>Vehicles do not switch to the nearest MEC after a handover. The far-MEC flow deliberately crosses the backhaul.</li>
+<li>Under best effort there are no meters, so there are no per-slice counters for that setup in the dashboard.</li>
+</ul>
+
+<h2>8. The team update, checked against what was built</h2>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="38%">Claim</th><th width="14%">Status</th><th width="48%">Accurate wording</th></tr>
+<tr><td>Emulation-scale V2X slicing</td><td bgcolor="#dff3e4">True</td><td>Five slices on a Mininet-WiFi testbed with 6 vehicles, 2 RSUs, MEC and central servers</td></tr>
+<tr><td>Dynamic reallocation</td><td bgcolor="#dff3e4">True</td><td>Capacity-aware loop on measured meter counters every 2 s, plus a REST API for manual resizing</td></tr>
+<tr><td>Standardised benchmarking</td><td bgcolor="#dff3e4">True</td><td>Scripted benchmark: 5 setups × 4 scenarios × 5 repeats, fixed flows, automatic analysis</td></tr>
+<tr><td>"Random waypoint / road-constrained mobility"</td><td bgcolor="#fbeed0">Partly</td><td>Random waypoint (seeded) and scripted intersecting paths. No road network (no SUMO)</td></tr>
+<tr><td>"Maps traffic flows to appropriate OVS queues and OpenFlow meters for strict priority scheduling"</td><td bgcolor="#fbeed0">Reworded</td><td>OpenFlow meters police each slice; the controller sets DSCP; strict-priority Linux queues on the backhaul links schedule by DSCP. They are Linux <code>prio</code> queues, not OVS queues</td></tr>
+<tr><td>"UDP 5000 directly to the highest priority URLLC queue (Queue 0)"</td><td bgcolor="#f6dcdc">Inaccurate</td><td>There is no OVS queue 0 for URLLC. UDP 5000 → meter 1 (5 Mb/s) → DSCP 46 → band 1 of the backhaul priority queue</td></tr>
+</table>
+<h3>Suggested wording</h3>
+<p><b>Contributions.</b> (1) An OpenFlow 1.3 orchestrator that classifies V2X traffic into URLLC, platoon, eMBB, mMTC and best-effort slices, polices each with a meter and marks it for strict-priority backhaul queues. (2) A capacity-aware control loop that reallocates eMBB bandwidth every 2 s from measured meter counters, plus a REST interface for slice resizing. (3) Mobility-aware forwarding that detects handovers and re-routes traffic, with RSU settings that make cross-RSU communication reliable. (4) A reproducible benchmark comparing five configurations over four scenarios with five repeats, and a dashboard that visualises vehicles, slices and latency.</p>
+<p><b>Result.</b> Under congestion the orchestrator keeps critical round-trip times at 5–25 ms against 2.4–3.8 s for best effort, with zero loss. Under heavy critical load, rate limiting alone gives 203 ms; adding either the capacity loop or strict priority brings it to about 23 ms.</p>
+<p><b>Future work.</b> Shorten the handover outage and re-measure mobility; steer vehicles to the nearest MEC after handover; SUMO road mobility; larger topologies; making the loop count traffic after policing.</p>
+
+<h2>9. Questions the evaluator may ask</h2>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="34%">Question</th><th width="66%">Answer</th></tr>
+<tr><td>What is the difference between RYU and your orchestrator?</td><td>RYU is the controller framework: it speaks OpenFlow to the switches. The orchestrator is our application on top of it that decides what to install: slice rules, meters, DSCP marks, the loop, handover handling and the REST API.</td></tr>
+<tr><td>Why meters and priority queues, not one of them?</td><td>They do different jobs. Meters cap each slice so nothing can starve the rest. Priority decides who waits when the link is full. The heavy scenario shows meters alone are not enough (203 ms against about 23 ms).</td></tr>
+<tr><td>Why is the loop useful if priority already works?</td><td>Priority only works where you control the queue. The loop prevents the overload in the first place, network-wide, using measurements. It costs eMBB about 2 Mb/s while critical traffic is high and gives it back automatically.</td></tr>
+<tr><td>Why are the queues Linux tc, not OVS queues?</td><td>OVS queues on a Linux datapath are themselves built on tc and would have wiped the link's delay and rate emulation. Building the tree directly keeps the 20 Mb/s, 5 ms backhaul and adds strict priority under it.</td></tr>
+<tr><td>Why is loss so high during handover?</td><td>The emulated stations take 6–10 s to re-associate with the other RSU, before any packet reaches the network. It is the same in every setup, so it does not affect the comparison; slicing still halves the loss around it.</td></tr>
+<tr><td>How do you know the results are reliable?</td><td>Each trial starts from a clean testbed, every configuration is repeated 5 times, and the spread is under 1 % for the parked scenarios. All raw logs are kept in <code>logs/step2</code>.</td></tr>
+<tr><td>Where is the edge-computing benefit?</td><td>Safety traffic to the vehicle's own RSU's MEC: 1.2 ms round trip, against 21 ms to the other RSU's MEC and 41 ms to the central servers.</td></tr>
+</table>
+
+<h2>10. Reproducing everything</h2>
+<pre>sudo bash ~/v2x-project/scripts/run_all_host.sh 5      # functional tests, checks, recordings, 80 trials (about 3.5 h)
+python3 ~/v2x-project/experiments/analyze.py logs/step2  # tables: logs/step2/summary.md, results.json
+python3 experiments/figures.py logs/step2/results.json docs/figures
+python3 experiments/run_figures.py dashboard/recordings docs/figures
+python3 ~/v2x-project/dashboard/server.py              # http://127.0.0.1:8090</pre>
+<p class="note">Setup of the machine and images: <code>docs/Environment_Setup_Guide_Part3.pdf</code>. Detailed status and history: <code>docs/V2X_HANDOFF_v2.md</code>. Main references: Saraiva et al., IEEE T-ITS 22(8), 2021; Shah et al., IEEE TCE 71(1), 2025; Ahmad, Gul &amp; Derawi, Sensors 26(13), 2026; Campolo et al., Sensors, 2018.</p>
+</body>
+</html>

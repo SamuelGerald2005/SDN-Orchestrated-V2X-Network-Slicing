@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="596" viewBox="0 0 900 298" font-family="Liberation Sans, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="0" y="18" font-size="15" font-weight="bold" fill="#0b0b0b">Handover: packet loss while vehicles move</text>
+<g transform="translate(0,34)"><text x="0" y="14" font-size="13" font-weight="bold" fill="#0b0b0b">URLLC edge</text>
+<line x1="112.0" x2="112.0" y1="26" y2="104" stroke="#c3c2b7"/>
+<text x="104.0" y="42" font-size="11" text-anchor="end" fill="#52514e">Best effort</text>
+<rect x="112.0" y="30" width="185.8" height="16" rx="3" fill="#2a78d6"/>
+<line x1="245.4" x2="350.1" y1="38" y2="38" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="350.1" x2="350.1" y1="33" y2="43" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="355.1" y="42" font-size="11" fill="#52514e">60.6%</text>
+<text x="104.0" y="68" font-size="11" text-anchor="end" fill="#52514e">Static slicing</text>
+<rect x="112.0" y="56" width="78.9" height="16" rx="3" fill="#2a78d6"/>
+<line x1="189.7" x2="192.0" y1="64" y2="64" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="192.0" x2="192.0" y1="59" y2="69" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="197.0" y="68" font-size="11" fill="#52514e">25.7%</text>
+<text x="104.0" y="94" font-size="11" text-anchor="end" fill="#52514e">Orchestrated</text>
+<rect x="112.0" y="82" width="81.9" height="16" rx="3" fill="#2a78d6"/>
+<line x1="186.9" x2="201.0" y1="90" y2="90" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="201.0" x2="201.0" y1="85" y2="95" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="206.0" y="94" font-size="11" fill="#52514e">26.7%</text></g>
+<g transform="translate(0,34)"><text x="460" y="14" font-size="13" font-weight="bold" fill="#0b0b0b">URLLC far</text>
+<line x1="572.0" x2="572.0" y1="26" y2="104" stroke="#c3c2b7"/>
+<text x="564.0" y="42" font-size="11" text-anchor="end" fill="#52514e">Best effort</text>
+<rect x="572.0" y="30" width="217.1" height="16" rx="3" fill="#2a78d6"/>
+<line x1="768.1" x2="810.1" y1="38" y2="38" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="810.1" x2="810.1" y1="33" y2="43" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="815.1" y="42" font-size="11" fill="#52514e">48.6%</text>
+<text x="564.0" y="68" font-size="11" text-anchor="end" fill="#52514e">Static slicing</text>
+<rect x="572.0" y="56" width="191.3" height="16" rx="3" fill="#2a78d6"/>
+<line x1="760.9" x2="765.7" y1="64" y2="64" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="765.7" x2="765.7" y1="59" y2="69" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="770.7" y="68" font-size="11" fill="#52514e">42.8%</text>
+<text x="564.0" y="94" font-size="11" text-anchor="end" fill="#52514e">Orchestrated</text>
+<rect x="572.0" y="82" width="196.2" height="16" rx="3" fill="#2a78d6"/>
+<line x1="761.8" x2="774.6" y1="90" y2="90" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="774.6" x2="774.6" y1="85" y2="95" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="779.6" y="94" font-size="11" fill="#52514e">43.9%</text></g>
+<g transform="translate(0,166)"><text x="0" y="14" font-size="13" font-weight="bold" fill="#0b0b0b">Platoon</text>
+<line x1="112.0" x2="112.0" y1="26" y2="104" stroke="#c3c2b7"/>
+<text x="104.0" y="42" font-size="11" text-anchor="end" fill="#52514e">Best effort</text>
+<rect x="112.0" y="30" width="217.8" height="16" rx="3" fill="#eb6834"/>
+<line x1="309.5" x2="350.1" y1="38" y2="38" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="350.1" x2="350.1" y1="33" y2="43" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="355.1" y="42" font-size="11" fill="#52514e">81.8%</text>
+<text x="104.0" y="68" font-size="11" text-anchor="end" fill="#52514e">Static slicing</text>
+<rect x="112.0" y="56" width="134.0" height="16" rx="3" fill="#eb6834"/>
+<line x1="244.6" x2="247.3" y1="64" y2="64" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="247.3" x2="247.3" y1="59" y2="69" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="252.3" y="68" font-size="11" fill="#52514e">50.3%</text>
+<text x="104.0" y="94" font-size="11" text-anchor="end" fill="#52514e">Orchestrated</text>
+<rect x="112.0" y="82" width="134.3" height="16" rx="3" fill="#eb6834"/>
+<line x1="245.2" x2="247.3" y1="90" y2="90" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="247.3" x2="247.3" y1="85" y2="95" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="252.3" y="94" font-size="11" fill="#52514e">50.5%</text></g>
+<g transform="translate(0,166)"><text x="460" y="14" font-size="13" font-weight="bold" fill="#0b0b0b">eMBB throughput</text>
+<line x1="572.0" x2="572.0" y1="26" y2="104" stroke="#c3c2b7"/>
+<text x="564.0" y="42" font-size="11" text-anchor="end" fill="#52514e">Best effort</text>
+<rect x="572.0" y="30" width="221.1" height="16" rx="3" fill="#1baf7a"/>
+<line x1="776.1" x2="810.1" y1="38" y2="38" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="810.1" x2="810.1" y1="33" y2="43" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="815.1" y="42" font-size="11" fill="#52514e">13.8 Mb/s</text>
+<text x="564.0" y="68" font-size="11" text-anchor="end" fill="#52514e">Static slicing</text>
+<rect x="572.0" y="56" width="178.8" height="16" rx="3" fill="#1baf7a"/>
+<line x1="745.9" x2="755.6" y1="64" y2="64" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="755.6" x2="755.6" y1="59" y2="69" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="760.6" y="68" font-size="11" fill="#52514e">11.1 Mb/s</text>
+<text x="564.0" y="94" font-size="11" text-anchor="end" fill="#52514e">Orchestrated</text>
+<rect x="572.0" y="82" width="168.8" height="16" rx="3" fill="#1baf7a"/>
+<line x1="727.0" x2="754.6" y1="90" y2="90" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="754.6" x2="754.6" y1="85" y2="95" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="759.6" y="94" font-size="11" fill="#52514e">10.5 Mb/s</text></g>
+</svg>

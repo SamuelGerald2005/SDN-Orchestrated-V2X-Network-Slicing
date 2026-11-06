@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1172" viewBox="0 0 900 586" font-family="Liberation Sans, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="0" y="18" font-size="15" font-weight="bold" fill="#0b0b0b">Congestion: jitter during the eMBB flood</text>
+<g transform="translate(0,34)"><text x="0" y="14" font-size="13" font-weight="bold" fill="#0b0b0b">URLLC edge</text>
+<line x1="112.0" x2="112.0" y1="26" y2="156" stroke="#c3c2b7"/>
+<text x="104.0" y="42" font-size="11" text-anchor="end" fill="#52514e">Best effort</text>
+<rect x="112.0" y="30" width="233.8" height="16" rx="3" fill="#2a78d6"/>
+<line x1="341.6" x2="350.1" y1="38" y2="38" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="350.1" x2="350.1" y1="33" y2="43" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="355.1" y="42" font-size="11" fill="#52514e">2.04 ms</text>
+<text x="104.0" y="68" font-size="11" text-anchor="end" fill="#52514e">Meters only</text>
+<rect x="112.0" y="56" width="163.6" height="16" rx="3" fill="#2a78d6"/>
+<line x1="272.5" x2="278.7" y1="64" y2="64" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="278.7" x2="278.7" y1="59" y2="69" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="283.7" y="68" font-size="11" fill="#52514e">1.43 ms</text>
+<text x="104.0" y="94" font-size="11" text-anchor="end" fill="#52514e">Meters + loop</text>
+<rect x="112.0" y="82" width="165.9" height="16" rx="3" fill="#2a78d6"/>
+<line x1="270.4" x2="285.5" y1="90" y2="90" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="285.5" x2="285.5" y1="85" y2="95" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="290.5" y="94" font-size="11" fill="#52514e">1.45 ms</text>
+<text x="104.0" y="120" font-size="11" text-anchor="end" fill="#52514e">Static slicing</text>
+<rect x="112.0" y="108" width="163.5" height="16" rx="3" fill="#2a78d6"/>
+<line x1="272.7" x2="278.2" y1="116" y2="116" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="278.2" x2="278.2" y1="111" y2="121" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="283.2" y="120" font-size="11" fill="#52514e">1.43 ms</text>
+<text x="104.0" y="146" font-size="11" text-anchor="end" fill="#52514e">Orchestrated</text>
+<rect x="112.0" y="134" width="162.2" height="16" rx="3" fill="#2a78d6"/>
+<line x1="267.9" x2="280.5" y1="142" y2="142" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="280.5" x2="280.5" y1="137" y2="147" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="285.5" y="146" font-size="11" fill="#52514e">1.42 ms</text></g>
+<g transform="translate(0,34)"><text x="460" y="14" font-size="13" font-weight="bold" fill="#0b0b0b">URLLC far</text>
+<line x1="572.0" x2="572.0" y1="26" y2="156" stroke="#c3c2b7"/>
+<text x="564.0" y="42" font-size="11" text-anchor="end" fill="#52514e">Best effort</text>
+<rect x="572.0" y="30" width="227.1" height="16" rx="3" fill="#2a78d6"/>
+<line x1="788.0" x2="810.1" y1="38" y2="38" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="810.1" x2="810.1" y1="33" y2="43" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="815.1" y="42" font-size="11" fill="#52514e">3.14 ms</text>
+<text x="564.0" y="68" font-size="11" text-anchor="end" fill="#52514e">Meters only</text>
+<rect x="572.0" y="56" width="40.4" height="16" rx="3" fill="#2a78d6"/>
+<line x1="607.6" x2="617.3" y1="64" y2="64" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="617.3" x2="617.3" y1="59" y2="69" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="622.3" y="68" font-size="11" fill="#52514e">0.56 ms</text>
+<text x="564.0" y="94" font-size="11" text-anchor="end" fill="#52514e">Meters + loop</text>
+<rect x="572.0" y="82" width="42.9" height="16" rx="3" fill="#2a78d6"/>
+<line x1="611.3" x2="618.6" y1="90" y2="90" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="618.6" x2="618.6" y1="85" y2="95" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="623.6" y="94" font-size="11" fill="#52514e">0.59 ms</text>
+<text x="564.0" y="120" font-size="11" text-anchor="end" fill="#52514e">Static slicing</text>
+<rect x="572.0" y="108" width="22.8" height="16" rx="3" fill="#2a78d6"/>
+<line x1="594.1" x2="595.4" y1="116" y2="116" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="595.4" x2="595.4" y1="111" y2="121" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="600.4" y="120" font-size="11" fill="#52514e">0.32 ms</text>
+<text x="564.0" y="146" font-size="11" text-anchor="end" fill="#52514e">Orchestrated</text>
+<rect x="572.0" y="134" width="24.7" height="16" rx="3" fill="#2a78d6"/>
+<line x1="591.5" x2="602.0" y1="142" y2="142" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="602.0" x2="602.0" y1="137" y2="147" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="607.0" y="146" font-size="11" fill="#52514e">0.34 ms</text></g>
+<g transform="translate(0,218)"><text x="0" y="14" font-size="13" font-weight="bold" fill="#0b0b0b">Platoon</text>
+<line x1="112.0" x2="112.0" y1="26" y2="156" stroke="#c3c2b7"/>
+<text x="104.0" y="42" font-size="11" text-anchor="end" fill="#52514e">Best effort</text>
+<rect x="112.0" y="30" width="227.3" height="16" rx="3" fill="#eb6834"/>
+<line x1="328.4" x2="350.1" y1="38" y2="38" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="350.1" x2="350.1" y1="33" y2="43" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="355.1" y="42" font-size="11" fill="#52514e">4.93 ms</text>
+<text x="104.0" y="68" font-size="11" text-anchor="end" fill="#52514e">Meters only</text>
+<rect x="112.0" y="56" width="78.9" height="16" rx="3" fill="#eb6834"/>
+<line x1="188.2" x2="193.6" y1="64" y2="64" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="193.6" x2="193.6" y1="59" y2="69" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="198.6" y="68" font-size="11" fill="#52514e">1.71 ms</text>
+<text x="104.0" y="94" font-size="11" text-anchor="end" fill="#52514e">Meters + loop</text>
+<rect x="112.0" y="82" width="80.5" height="16" rx="3" fill="#eb6834"/>
+<line x1="190.5" x2="194.5" y1="90" y2="90" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="194.5" x2="194.5" y1="85" y2="95" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="199.5" y="94" font-size="11" fill="#52514e">1.75 ms</text>
+<text x="104.0" y="120" font-size="11" text-anchor="end" fill="#52514e">Static slicing</text>
+<rect x="112.0" y="108" width="70.9" height="16" rx="3" fill="#eb6834"/>
+<line x1="180.4" x2="185.3" y1="116" y2="116" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="185.3" x2="185.3" y1="111" y2="121" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="190.3" y="120" font-size="11" fill="#52514e">1.54 ms</text>
+<text x="104.0" y="146" font-size="11" text-anchor="end" fill="#52514e">Orchestrated</text>
+<rect x="112.0" y="134" width="69.3" height="16" rx="3" fill="#eb6834"/>
+<line x1="179.4" x2="183.3" y1="142" y2="142" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="183.3" x2="183.3" y1="137" y2="147" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="188.3" y="146" font-size="11" fill="#52514e">1.50 ms</text></g>
+<g transform="translate(0,218)"><text x="460" y="14" font-size="13" font-weight="bold" fill="#0b0b0b">mMTC</text>
+<line x1="572.0" x2="572.0" y1="26" y2="156" stroke="#c3c2b7"/>
+<text x="564.0" y="42" font-size="11" text-anchor="end" fill="#52514e">Best effort</text>
+<rect x="572.0" y="30" width="224.2" height="16" rx="3" fill="#eda100"/>
+<line x1="782.4" x2="810.1" y1="38" y2="38" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="810.1" x2="810.1" y1="33" y2="43" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="815.1" y="42" font-size="11" fill="#52514e">35.9 ms</text>
+<text x="564.0" y="68" font-size="11" text-anchor="end" fill="#52514e">Meters only</text>
+<rect x="572.0" y="56" width="8.7" height="16" rx="3" fill="#eda100"/>
+<line x1="580.4" x2="581.1" y1="64" y2="64" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="581.1" x2="581.1" y1="59" y2="69" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="586.1" y="68" font-size="11" fill="#52514e">1.40 ms</text>
+<text x="564.0" y="94" font-size="11" text-anchor="end" fill="#52514e">Meters + loop</text>
+<rect x="572.0" y="82" width="8.9" height="16" rx="3" fill="#eda100"/>
+<line x1="580.5" x2="581.2" y1="90" y2="90" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="581.2" x2="581.2" y1="85" y2="95" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="586.2" y="94" font-size="11" fill="#52514e">1.42 ms</text>
+<text x="564.0" y="120" font-size="11" text-anchor="end" fill="#52514e">Static slicing</text>
+<rect x="572.0" y="108" width="7.5" height="16" rx="3" fill="#eda100"/>
+<line x1="579.0" x2="580.0" y1="116" y2="116" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="580.0" x2="580.0" y1="111" y2="121" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="585.0" y="120" font-size="11" fill="#52514e">1.19 ms</text>
+<text x="564.0" y="146" font-size="11" text-anchor="end" fill="#52514e">Orchestrated</text>
+<rect x="572.0" y="134" width="7.7" height="16" rx="3" fill="#eda100"/>
+<line x1="579.3" x2="580.2" y1="142" y2="142" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="580.2" x2="580.2" y1="137" y2="147" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="585.2" y="146" font-size="11" fill="#52514e">1.24 ms</text></g>
+<g transform="translate(0,402)"><text x="0" y="14" font-size="13" font-weight="bold" fill="#0b0b0b">eMBB throughput</text>
+<line x1="112.0" x2="112.0" y1="26" y2="156" stroke="#c3c2b7"/>
+<text x="104.0" y="42" font-size="11" text-anchor="end" fill="#52514e">Best effort</text>
+<rect x="112.0" y="30" width="237.3" height="16" rx="3" fill="#1baf7a"/>
+<line x1="348.5" x2="350.1" y1="38" y2="38" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="350.1" x2="350.1" y1="33" y2="43" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="355.1" y="42" font-size="11" fill="#52514e">16.9 Mb/s</text>
+<text x="104.0" y="68" font-size="11" text-anchor="end" fill="#52514e">Meters only</text>
+<rect x="112.0" y="56" width="159.0" height="16" rx="3" fill="#1baf7a"/>
+<line x1="270.7" x2="271.2" y1="64" y2="64" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="271.2" x2="271.2" y1="59" y2="69" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="276.2" y="68" font-size="11" fill="#52514e">11.3 Mb/s</text>
+<text x="104.0" y="94" font-size="11" text-anchor="end" fill="#52514e">Meters + loop</text>
+<rect x="112.0" y="82" width="158.6" height="16" rx="3" fill="#1baf7a"/>
+<line x1="270.3" x2="270.9" y1="90" y2="90" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="270.9" x2="270.9" y1="85" y2="95" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="275.9" y="94" font-size="11" fill="#52514e">11.3 Mb/s</text>
+<text x="104.0" y="120" font-size="11" text-anchor="end" fill="#52514e">Static slicing</text>
+<rect x="112.0" y="108" width="159.0" height="16" rx="3" fill="#1baf7a"/>
+<line x1="270.7" x2="271.2" y1="116" y2="116" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="271.2" x2="271.2" y1="111" y2="121" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="276.2" y="120" font-size="11" fill="#52514e">11.3 Mb/s</text>
+<text x="104.0" y="146" font-size="11" text-anchor="end" fill="#52514e">Orchestrated</text>
+<rect x="112.0" y="134" width="158.9" height="16" rx="3" fill="#1baf7a"/>
+<line x1="270.7" x2="271.1" y1="142" y2="142" stroke="#0b0b0b" stroke-width="1.5"/>
+<line x1="271.1" x2="271.1" y1="137" y2="147" stroke="#0b0b0b" stroke-width="1.5"/>
+<text x="276.1" y="146" font-size="11" fill="#52514e">11.3 Mb/s</text></g>
+</svg>

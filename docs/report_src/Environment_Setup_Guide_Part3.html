@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Environment Setup Guide, Part 3: Native Ubuntu</title>
+<style>
+@page { size: A4; margin: 20mm 18mm 18mm 18mm; }
+body { font-family: "Liberation Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.32; color: #1f2933; }
+h1 { font-size: 20pt; color: #12344d; margin: 0 0 3pt 0; }
+h2 { font-size: 13.5pt; color: #12344d; margin: 14pt 0 5pt 0; }
+h3 { font-size: 11pt; color: #1f5f8b; margin: 9pt 0 3pt 0; }
+p { margin: 0 0 6pt 0; }
+li { margin: 0 0 3pt 0; }
+th { font-size: 9pt; color: #12344d; text-align: left; }
+td { font-size: 9pt; vertical-align: top; }
+code { font-family: "Liberation Mono", monospace; font-size: 8.5pt; }
+pre { font-family: "Liberation Mono", monospace; font-size: 8.5pt; background: #eef2f6; margin: 2pt 0 7pt 0; }
+.sub { color: #52606d; }
+.note { color: #52606d; font-size: 9pt; }
+</style>
+</head>
+<body>
+<div type="FOOTER"><p align="center" class="note">Environment Setup Guide, Part 3 &nbsp;|&nbsp; Page <sdfield type="PAGE" subtype="RANDOM" format="PAGE">1</sdfield></p></div>
+
+<h1>Environment Setup Guide, Part 3</h1>
+<p class="sub">Native Ubuntu migration, the project image, and running the full testbed<br>SDN-Orchestrated Network Slicing for Vehicular 5G (V2X). November 2026.</p>
+
+<p>Parts 1 and 2 set the testbed up inside a VirtualBox VM on Windows. This part covers the move to a dedicated Ubuntu laptop, rebuilding the images, and the scripts that now run every check and experiment. It continues the step numbering from Part 2.</p>
+
+<h2>Step 14: Host machine</h2>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="30%">Item</th><th width="70%">Value</th></tr>
+<tr><td>Operating system</td><td>Ubuntu 24.04.5 LTS, X11 session</td></tr>
+<tr><td>Kernel</td><td>6.8.0 generic (the handoff recorded 6.8.0-142; the laptop later ran 6.8.0-147)</td></tr>
+<tr><td>Hardware</td><td>12 cores, 15 GB RAM</td></tr>
+<tr><td>Docker</td><td>29.1.3 from the Ubuntu package (<code>docker.io</code>)</td></tr>
+<tr><td>Kernel modules</td><td><code>mac80211_hwsim</code> and <code>openvswitch</code> must load. Check with <code>lsmod | grep -E 'hwsim|openvswitch'</code></td></tr>
+<tr><td>Host Open vSwitch</td><td>Must stay <b>inactive</b>. OVS runs inside the container, and a host OVS service would fight over the kernel datapath</td></tr>
+<tr><td>Other containers</td><td>Stop unrelated containers during experiments so they don't take CPU</td></tr>
+</table>
+<p class="note"><br>The user is not in the <code>docker</code> group, so every Docker command needs <code>sudo</code>. That is why each script below asks for the password once at the start.</p>
+
+<h2>Step 15: Base image <code>mn-wifi:v1</code></h2>
+<p>Clone Mininet-WiFi and patch its Dockerfile before building. The base image is <code>python:3.9</code>, now Debian 13. Insert these two lines before <code>RUN util/install.sh -Wlnfv6</code>:</p>
+<pre>RUN sed -i "s/from FlightRadarAPI import FlightRadar24API/from FlightRadar24 import FlightRadar24API/" mn_wifi/net.py
+RUN sed -i "s/matplotlib.use('TkAgg')/matplotlib.use('TkAgg', force=False)/" mn_wifi/telemetry.py</pre>
+<ul>
+<li><b>FlightRadar fix.</b> FlightRadarAPI 1.4.1 and later need Python 3.10. On 3.9, pip installs 1.4.0, whose module is named <code>FlightRadar24</code>.</li>
+<li><b>TkAgg fix.</b> Upstream now forces the Tk plotting backend at import, which crashes the headless Docker build.</li>
+<li>The <code>set_data([x],[y])</code> patches from Part 1 Step 7.3 are no longer needed; upstream fixed them.</li>
+</ul>
+<pre>git clone https://github.com/intrig-unicamp/mininet-wifi ~/mininet-wifi
+cd ~/mininet-wifi &amp;&amp; sudo docker build -t mn-wifi:v1 .</pre>
+
+<h2>Step 16: Project image <code>mn-wifi:v2</code></h2>
+<p>Built from <code>~/v2x-project/docker/Dockerfile</code>. It adds RYU, restores Mininet-WiFi's <code>mn</code>, and installs <code>iperf3</code>:</p>
+<pre>FROM mn-wifi:v1
+RUN python3 -m pip install "setuptools&lt;68" wheel \
+ &amp;&amp; python3 -m pip install --no-build-isolation ryu \
+ &amp;&amp; python3 -m pip install "eventlet==0.30.2"
+RUN install -m 755 /app/mininet-wifi/bin/mn /usr/local/bin/mn
+RUN apt-get update &amp;&amp; apt-get install -y iperf3 &amp;&amp; rm -rf /var/lib/apt/lists/*
+WORKDIR /app/project</pre>
+<ul>
+<li><b>RYU 4.34 pins.</b> <code>setuptools&lt;68</code> because <code>get_script_args</code> was removed; <code>--no-build-isolation</code> so that pin applies; eventlet 0.30.2 because <code>ALREADY_HANDLED</code> was removed later.</li>
+<li><b><code>mn</code> restore.</b> Plain Mininet's <code>mn</code> overwrote Mininet-WiFi's, so <code>mn --wifi</code> failed until it was reinstalled.</li>
+</ul>
+<pre>cd ~/v2x-project/docker &amp;&amp; sudo docker build -t mn-wifi:v2 .</pre>
+
+<h2>Step 17: Running the testbed</h2>
+<h3>17.1 Manual session (two terminals)</h3>
+<p>The original launch script, <code>~/start_mnwifi.sh</code>, starts a privileged container with the project folder mounted at <code>/app/project</code>. Everything else in the container is lost on exit.</p>
+<pre>~/start_mnwifi.sh
+mn -c
+ryu-manager --wsapi-port 8081 /app/project/controller/v2x_orchestrator.py</pre>
+<p>In a second terminal:</p>
+<pre>sudo docker exec -it $(sudo docker ps -q --filter ancestor=mn-wifi:v2) bash
+python3 /app/project/v2x_topology_v2.py</pre>
+<p>Always run <code>mn -c</code> before starting RYU, because <code>mn -c</code> kills <code>ryu-manager</code>. Wait about 25 seconds for the scripted mobility to finish before measuring.</p>
+
+<h3>17.2 Scripted runs (one password each)</h3>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="42%">Command</th><th width="58%">What it does</th></tr>
+<tr><td><code>sudo bash scripts/run_all_host.sh 5</code></td><td>Everything: functional checks, Step 12 check, a gate that stops on failure, dashboard recordings, then 5 experiment repeats. About 3 hours. Progress is in <code>logs/final/stage</code> and <code>logs/final/batch.log</code></td></tr>
+<tr><td><code>sudo bash scripts/verify_step12_host.sh</code></td><td>Step 12 verification only, with the live plot (run <code>DISPLAY=:1 xhost +local:docker</code> first)</td></tr>
+<tr><td><code>sudo bash scripts/run_step2_host.sh 1 "heavy"</code></td><td>Selected experiment scenarios only</td></tr>
+<tr><td><code>sudo bash scripts/run_live_demo_host.sh orchestrated 30</code></td><td>A continuous testbed for the dashboard's Live view, for 30 minutes</td></tr>
+</table>
+<p class="note"><br>All of these run from <code>~/v2x-project</code>, keep their logs under <code>logs/</code>, and hand the files back to your user when they finish.</p>
+
+<h3>17.3 Dashboard</h3>
+<pre>python3 ~/v2x-project/dashboard/server.py</pre>
+<p>Then open <code>http://127.0.0.1:8090</code>. It needs no sudo, no Docker and no internet, and replays the recordings in <code>dashboard/recordings</code>.</p>
+
+<h2>Step 18: Problems found on the native setup, and their fixes</h2>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="28%">Symptom</th><th width="36%">Cause</th><th width="36%">Fix</th></tr>
+<tr><td>No switches register with RYU; hundreds of dead connections on port 6653</td><td>The orchestrator's <code>self.events</code> overwrote RYU's own event queue</td><td>Renamed to <code>self.event_log</code></td></tr>
+<tr><td>Vehicle-to-vehicle pings fail across RSUs after the vehicles move (74/90)</td><td>The old RSU keeps a departed vehicle in its station list for minutes and delivers its frames locally</td><td>hostapd settings from Saraiva et al.: <code>ap_max_inactivity=6</code>, <code>skip_inactivity_poll=1</code>, <code>max_listen_interval=6</code>, plus 1-second vehicle beacons</td></tr>
+<tr><td>Traffic between two vehicles on one RSU bypasses its slice meter</td><td>The RSU's kernel bridges the frames itself, so they never reach OVS</td><td><code>client_isolation=True</code>, and the controller sends that traffic back out the Wi-Fi port (<code>OFPP_IN_PORT</code>)</td></tr>
+<tr><td>Traffic gaps while vehicles move</td><td>Partly a coverage hole between the RSUs; the rest (7 to 14 s per handover) is the emulated station re-associating between RSUs on channels 1 and 6</td><td><code>range=30</code> on the RSUs removes the hole ("effective 30.00m using tx power 13 dBm"). The re-association delay remains and is documented as a limitation</td></tr>
+<tr><td>Uplink traffic gets neither the 5 ms delay nor the 20 Mb/s limit</td><td>The RSU end of each backhaul link had lost its TCLink shaping (no root qdisc at all)</td><td>The topology rebuilds both ends: HTB at 20 Mb/s, then 3-band priority, then 5 ms netem per band</td></tr>
+<tr><td><code>sch_htb: quantum ... is big</code> warnings</td><td>TCLink's HTB class at 20 and 100 Mb/s</td><td>Harmless. The rebuilt backhaul classes set <code>quantum 1514</code>, but TCLink still prints the warning when it first creates the links</td></tr>
+<tr><td><code>addLink</code> returns <code>None</code></td><td>Mininet-WiFi only creates links during <code>build()</code></td><td>Find the backhaul links in <code>net.links</code> after building</td></tr>
+</table>
+
+<h2>Step 19: Verification status</h2>
+<table width="100%" border="1" bordercolor="#c5ced6" cellpadding="4" cellspacing="0">
+<tr bgcolor="#e4ebf1"><th width="46%">Check</th><th width="16%">Status</th><th width="38%">Evidence</th></tr>
+<tr><td>Images build and <code>mn --wifi</code> works</td><td bgcolor="#dff3e4">Done</td><td>Handoff notes, 5 November</td></tr>
+<tr><td>Orchestrator connects to all 3 switches</td><td bgcolor="#dff3e4">Done</td><td><code>logs/step12</code></td></tr>
+<tr><td>Full connectivity after mobility</td><td bgcolor="#dff3e4">Done</td><td>90/90 in all three pingalls, <code>logs/step12</code></td></tr>
+<tr><td>Meters limit URLLC, mMTC, best effort and eMBB</td><td bgcolor="#dff3e4">Done</td><td><code>logs/final/functional</code></td></tr>
+<tr><td>REST resize, including bad requests</td><td bgcolor="#dff3e4">Done</td><td>200, 200, 404, 400 in <code>logs/final/functional</code></td></tr>
+<tr><td>Priority queue tree and DSCP filters installed</td><td bgcolor="#dff3e4">Done</td><td><code>logs/final/functional/qdisc_tree.txt</code>; band 1 carries the marked traffic (<code>qdisc.txt</code> in each trial)</td></tr>
+<tr><td>Full experiment, 5 repeats (80 trials)</td><td bgcolor="#dff3e4">Done</td><td><code>logs/step2/summary.md</code>, figures in <code>docs/figures</code></td></tr>
+</table>
+</body>
+</html>

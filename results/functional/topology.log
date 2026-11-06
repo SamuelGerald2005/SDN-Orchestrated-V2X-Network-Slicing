@@ -1,0 +1,51 @@
+*** Adding controller (RYU)
+*** Adding access points (RSUs)
+*** Adding OVS backhaul switch
+*** Adding vehicle stations (6)
+*** Adding edge (MEC) servers at RSUs - URLLC slice
+*** Adding central servers - eMBB and mMTC slices
+*** Setting propagation model
+*** Configuring nodes
+*** rsu1-wlan1: requested 30.00m -> effective 30.00m (delta +0.00m) using tx power 13 dBm
+*** rsu2-wlan1: requested 30.00m -> effective 30.00m (delta +0.00m) using tx power 13 dBm
+*** Connecting to wmediumd server /var/run/wmediumd.sock
+*** Creating links
+(0.5ms delay) (0.5ms delay) (0.5ms delay) (0.5ms delay) (20.00Mbit 5ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(20.00Mbit 5ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(20.00Mbit 5ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(20.00Mbit 5ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(100.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(100.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(100.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(100.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Plotting topology
+*** Scripting vehicle mobility (intersecting paths)
+*** Starting network
+(20.00Mbit 5ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(20.00Mbit 5ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(100.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+(100.00Mbit 15ms delay) *** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Priority queues on rsu1-eth3: Error: Cannot delete qdisc with handle of zero.
+
+*** Priority queues on s1-eth1
+*** Priority queues on rsu2-eth3: Error: Cannot delete qdisc with handle of zero.
+
+*** Priority queues on s1-eth2
+*** Starting vehicle beacons
+*** Running CLI
+*** Starting CLI:
+mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> mininet-wifi> *** Stopping network
+*** Stopping 1 controllers
+c0 
+*** Stopping 22 links
+......................
+*** Stopping switches/access points
+s1 rsu1 rsu2 
+*** Stopping nodes
+mec_rsu1 mec_rsu2 infotain telemetry veh1 veh2 veh3 veh4 veh5 veh6 
+
+*** Removing WiFi module and Configurations
+*** Killing mac80211_hwsim
+
+*** Done
+topology exit code: 0

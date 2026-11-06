@@ -1,0 +1,10 @@
+{
+  "meter": 1,
+  "proto": 17,
+  "port": 5000,
+  "kbps": 5000,
+  "dscp": 46,
+  "critical": true,
+  "desc": "Safety messages -> RSU edge (MEC) server",
+  "budget_kbps": 3000
+}
